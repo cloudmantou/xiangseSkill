@@ -1,0 +1,261 @@
+{
+  "ok": true,
+  "input": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/xuefeige_fixed.json",
+  "sourceKey": "雪飞阁",
+  "mode": "fixture",
+  "engine": "auto",
+  "report": {
+    "success": false,
+    "sourceKey": "雪飞阁",
+    "meta": {
+      "sourceName": "雪飞阁",
+      "sourceUrl": "https://www.xuefeige.com",
+      "sourceType": "text",
+      "engine": "auto",
+      "webViewTimeoutSeconds": 25
+    },
+    "steps": {
+      "searchBook": {
+        "step": "searchBook",
+        "success": true,
+        "blocked": false,
+        "blockedReason": "",
+        "requestDebug": {
+          "request": {
+            "url": "https://www.xuefeige.com/search.php",
+            "method": "GET",
+            "httpParams": {
+              "search": "都市"
+            },
+            "httpHeaders": {
+              "Referer": "https://www.xuefeige.com",
+              "Upgrade-Insecure-Requests": "1",
+              "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+              "Accept-Language": "zh-CN,zh;q=0.9",
+              "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
+            }
+          },
+          "responseUrl": "https://www.xuefeige.com/search.php",
+          "mode": "fixture",
+          "runtimeEngine": "http",
+          "fixtureUsed": "../verification/fixtures/xuefeige/searchBook.html",
+          "status": 200,
+          "blocked": false,
+          "blockedReason": "",
+          "webviewTrace": [],
+          "webviewAppliedKeys": []
+        },
+        "parseResult": {
+          "listLengthOnlyDebug": 2,
+          "list": [
+            {
+              "author": "作者甲 作者乙",
+              "lastChapterTitle": "第99章 第12章",
+              "bookName": "都市修仙传 都市狂兵",
+              "detailUrl": "/book/1001/ /book/1002/"
+            },
+            {
+              "author": "作者甲 作者乙",
+              "lastChapterTitle": "第99章 第12章",
+              "bookName": "都市修仙传 都市狂兵",
+              "detailUrl": "/book/1001/ /book/1002/"
+            }
+          ],
+          "item": {}
+        },
+        "fieldDiagnostics": [
+          {
+            "step": "searchBook",
+            "field": "status",
+            "level": "warning",
+            "message": "searchBook optional field missing: status"
+          },
+          {
+            "step": "searchBook",
+            "field": "cat",
+            "level": "warning",
+            "message": "searchBook optional field missing: cat"
+          },
+          {
+            "step": "searchBook",
+            "field": "desc",
+            "level": "warning",
+            "message": "searchBook optional field missing: desc"
+          },
+          {
+            "step": "searchBook",
+            "field": "cover",
+            "level": "warning",
+            "message": "searchBook optional field missing: cover"
+          }
+        ],
+        "elapsedMs": 60
+      },
+      "bookDetail": {
+        "step": "bookDetail",
+        "success": false,
+        "blocked": false,
+        "blockedReason": "",
+        "requestDebug": {
+          "request": {
+            "url": "https://www.xuefeige.com/book/1001/%20/book/1002/",
+            "method": "GET",
+            "httpHeaders": {
+              "Referer": "https://www.xuefeige.com",
+              "Upgrade-Insecure-Requests": "1",
+              "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+              "Accept-Language": "zh-CN,zh;q=0.9",
+              "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
+            }
+          },
+          "responseUrl": "https://www.xuefeige.com/book/1001/%20/book/1002/",
+          "mode": "fixture",
+          "runtimeEngine": "http",
+          "fixtureUsed": "../verification/fixtures/xuefeige/bookDetail.html",
+          "status": 200,
+          "blocked": false,
+          "blockedReason": "",
+          "webviewTrace": [],
+          "webviewAppliedKeys": []
+        },
+        "parseResult": {
+          "listLengthOnlyDebug": 0,
+          "list": [],
+          "item": {
+            "status": "120万字",
+            "cat": "都市",
+            "cover": "/cover/1001.jpg",
+            "desc": "这是一本都市题材测试小说简介。"
+          }
+        },
+        "fieldDiagnostics": [
+          {
+            "step": "bookDetail",
+            "field": "title",
+            "level": "error",
+            "message": "bookDetail missing title/bookName/name"
+          },
+          {
+            "step": "bookDetail",
+            "field": "author",
+            "level": "warning",
+            "message": "bookDetail optional field missing: author"
+          },
+          {
+            "step": "bookDetail",
+            "field": "lastChapterTitle",
+            "level": "warning",
+            "message": "bookDetail optional field missing: lastChapterTitle"
+          }
+        ],
+        "elapsedMs": 5
+      },
+      "chapterList": {
+        "step": "chapterList",
+        "success": true,
+        "blocked": false,
+        "blockedReason": "",
+        "requestDebug": {
+          "request": {
+            "url": "https://www.xuefeige.com/book/1001/%20/book/1002/",
+            "method": "GET",
+            "httpHeaders": {
+              "Referer": "https://www.xuefeige.com",
+              "Upgrade-Insecure-Requests": "1",
+              "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+              "Accept-Language": "zh-CN,zh;q=0.9",
+              "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
+            }
+          },
+          "responseUrl": "https://www.xuefeige.com/book/1001/%20/book/1002/",
+          "mode": "fixture",
+          "runtimeEngine": "http",
+          "fixtureUsed": "../verification/fixtures/xuefeige/chapterList.html",
+          "status": 200,
+          "blocked": false,
+          "blockedReason": "",
+          "webviewTrace": [],
+          "webviewAppliedKeys": []
+        },
+        "parseResult": {
+          "listLengthOnlyDebug": 2,
+          "list": [
+            {
+              "title": "第1章 开端 第2章 发展",
+              "url": "/book/1001/1.html /book/1001/2.html"
+            },
+            {
+              "title": "第1章 开端 第2章 发展",
+              "url": "/book/1001/1.html /book/1001/2.html"
+            }
+          ],
+          "item": {}
+        },
+        "fieldDiagnostics": [],
+        "elapsedMs": 5
+      },
+      "chapterContent": {
+        "step": "chapterContent",
+        "success": true,
+        "blocked": false,
+        "blockedReason": "",
+        "requestDebug": {
+          "request": {
+            "url": "https://www.xuefeige.com/book/1001/1.html%20/book/1001/2.html",
+            "method": "GET",
+            "httpHeaders": {
+              "Referer": "https://www.xuefeige.com",
+              "Upgrade-Insecure-Requests": "1",
+              "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+              "Accept-Language": "zh-CN,zh;q=0.9",
+              "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
+            }
+          },
+          "responseUrl": "https://www.xuefeige.com/book/1001/1.html%20/book/1001/2.html",
+          "mode": "fixture",
+          "runtimeEngine": "http",
+          "fixtureUsed": "../verification/fixtures/xuefeige/chapterContent.html",
+          "status": 200,
+          "blocked": false,
+          "blockedReason": "",
+          "webviewTrace": [],
+          "webviewAppliedKeys": []
+        },
+        "parseResult": {
+          "listLengthOnlyDebug": 0,
+          "list": [],
+          "item": {
+            "content": "这是第一章正文内容，用于验证香色闺阁 chapterContent 解析链路是否可用。正文长度需要超过最小阈值。"
+          }
+        },
+        "fieldDiagnostics": [
+          {
+            "step": "chapterContent",
+            "field": "title",
+            "level": "warning",
+            "message": "chapterContent title is recommended"
+          }
+        ],
+        "elapsedMs": 3
+      }
+    },
+    "verdict": {
+      "pass": false,
+      "status": "fail",
+      "failReasons": [
+        "[bookDetail.title] bookDetail missing title/bookName/name"
+      ],
+      "warnings": [
+        "[searchBook.status] searchBook optional field missing: status",
+        "[searchBook.cat] searchBook optional field missing: cat",
+        "[searchBook.desc] searchBook optional field missing: desc",
+        "[searchBook.cover] searchBook optional field missing: cover",
+        "[bookDetail.author] bookDetail optional field missing: author",
+        "[bookDetail.lastChapterTitle] bookDetail optional field missing: lastChapterTitle",
+        "[chapterContent.title] chapterContent title is recommended"
+      ],
+      "blockedReasons": []
+    },
+    "createdAt": "2026-07-05T13:25:21.570Z"
+  }
+}

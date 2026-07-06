@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-05
+- 基于仓库内置 `Tg@TrollstoreKios.app`（StandarReader 2.56.1）复扫 IPA，完善 skill 逆向基线。
+- 新增 `tools/scripts/decode_xbs.py`（Go 不可用时的 XBS 解包回退）。
+- 逆向文档与 skill 补全：`webViewSkipUrlsUnless`、`webViewSniff`、`wkwebview_post`、LCJSTool 能力清单。
+
 ## 2026-03-12
 - WebView 模拟增强（静态逆向驱动）：
   - `tools/validator` 新增 WebView 执行层：

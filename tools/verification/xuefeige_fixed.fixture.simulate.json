@@ -1,0 +1,254 @@
+{
+  "input": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/xuefeige_fixed.json",
+  "mode": "fixture",
+  "engine": "auto",
+  "webview_timeout_seconds": 25,
+  "normalization": {
+    "input_type": "json",
+    "decoded_json": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/xuefeige_fixed.json",
+    "source_alias": "雪飞阁",
+    "source_mode": "new",
+    "change_count": 0,
+    "changes": []
+  },
+  "schema_check": {
+    "status": "PASS",
+    "errors": [],
+    "warnings": [],
+    "source_count": 1
+  },
+  "editor_check": {
+    "status": "WARN",
+    "strict": false,
+    "risk_count": 2,
+    "high_risk_count": 0,
+    "medium_risk_count": 2,
+    "risks": [
+      {
+        "level": "medium",
+        "code": "NEW_SCHEMA_WRAPPER",
+        "path": "<top>",
+        "message": "使用新 schema wrapper（sourceName/sourceUrl），请执行编辑页保存回归验证"
+      },
+      {
+        "level": "medium",
+        "code": "TOP_HTTPHEADERS",
+        "path": "httpHeaders",
+        "message": "顶层 httpHeaders 是对象，属于已知保存崩溃嫌疑字段簇"
+      }
+    ]
+  },
+  "simulation_verdict": {
+    "status": "pass",
+    "pass": true,
+    "blocked_reason": "",
+    "fail_reasons": [],
+    "warnings": [
+      "[searchBook.status] searchBook optional field missing: status",
+      "[searchBook.cat] searchBook optional field missing: cat",
+      "[searchBook.desc] searchBook optional field missing: desc",
+      "[searchBook.cover] searchBook optional field missing: cover",
+      "[bookDetail.author] bookDetail optional field missing: author",
+      "[bookDetail.lastChapterTitle] bookDetail optional field missing: lastChapterTitle",
+      "[chapterContent.title] chapterContent title is recommended"
+    ]
+  },
+  "overall_verdict": {
+    "status": "pass",
+    "pass": true
+  },
+  "steps": {
+    "searchBook": {
+      "step": "searchBook",
+      "status": "pass",
+      "runtime_engine": "http",
+      "blocked": false,
+      "blocked_reason": "",
+      "elapsed_ms": 51,
+      "request": {
+        "method": "GET",
+        "url": "https://www.xuefeige.com/search.php",
+        "http_params_count": 1,
+        "http_header_count": 5
+      },
+      "response": {
+        "status": 200,
+        "url": "https://www.xuefeige.com/search.php",
+        "body_mode": "fixture",
+        "fixture_used": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/fixtures/xuefeige/searchBook.html"
+      },
+      "parse": {
+        "list_length": 2,
+        "sample_item_keys": [
+          "author",
+          "bookName",
+          "detailUrl",
+          "lastChapterTitle"
+        ],
+        "sample_item": {
+          "author": "作者甲 作者乙",
+          "lastChapterTitle": "第99章 第12章",
+          "bookName": "都市修仙传 都市狂兵",
+          "detailUrl": "/book/1001/ /book/1002/"
+        }
+      },
+      "webview_applied_keys": [],
+      "webview_trace": [],
+      "errors": [],
+      "warnings": [
+        "searchBook optional field missing: status",
+        "searchBook optional field missing: cat",
+        "searchBook optional field missing: desc",
+        "searchBook optional field missing: cover"
+      ]
+    },
+    "bookDetail": {
+      "step": "bookDetail",
+      "status": "pass",
+      "runtime_engine": "http",
+      "blocked": false,
+      "blocked_reason": "",
+      "elapsed_ms": 7,
+      "request": {
+        "method": "GET",
+        "url": "https://www.xuefeige.com/book/1001/%20/book/1002/",
+        "http_params_count": 0,
+        "http_header_count": 5
+      },
+      "response": {
+        "status": 200,
+        "url": "https://www.xuefeige.com/book/1001/%20/book/1002/",
+        "body_mode": "fixture",
+        "fixture_used": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/fixtures/xuefeige/bookDetail.html"
+      },
+      "parse": {
+        "list_length": 0,
+        "sample_item_keys": [
+          "cat",
+          "cover",
+          "desc",
+          "status",
+          "title"
+        ],
+        "sample_item": {
+          "title": "都市修仙传",
+          "status": "120万字",
+          "cat": "都市",
+          "cover": "/cover/1001.jpg",
+          "desc": "这是一本都市题材测试小说简介。"
+        }
+      },
+      "webview_applied_keys": [],
+      "webview_trace": [],
+      "errors": [],
+      "warnings": [
+        "bookDetail optional field missing: author",
+        "bookDetail optional field missing: lastChapterTitle"
+      ]
+    },
+    "chapterList": {
+      "step": "chapterList",
+      "status": "pass",
+      "runtime_engine": "http",
+      "blocked": false,
+      "blocked_reason": "",
+      "elapsed_ms": 4,
+      "request": {
+        "method": "GET",
+        "url": "https://www.xuefeige.com/book/1001/%20/book/1002/",
+        "http_params_count": 0,
+        "http_header_count": 5
+      },
+      "response": {
+        "status": 200,
+        "url": "https://www.xuefeige.com/book/1001/%20/book/1002/",
+        "body_mode": "fixture",
+        "fixture_used": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/fixtures/xuefeige/chapterList.html"
+      },
+      "parse": {
+        "list_length": 2,
+        "sample_item_keys": [
+          "title",
+          "url"
+        ],
+        "sample_item": {
+          "title": "第1章 开端 第2章 发展",
+          "url": "/book/1001/1.html /book/1001/2.html"
+        }
+      },
+      "webview_applied_keys": [],
+      "webview_trace": [],
+      "errors": [],
+      "warnings": []
+    },
+    "chapterContent": {
+      "step": "chapterContent",
+      "status": "pass",
+      "runtime_engine": "http",
+      "blocked": false,
+      "blocked_reason": "",
+      "elapsed_ms": 2,
+      "request": {
+        "method": "GET",
+        "url": "https://www.xuefeige.com/book/1001/1.html%20/book/1001/2.html",
+        "http_params_count": 0,
+        "http_header_count": 5
+      },
+      "response": {
+        "status": 200,
+        "url": "https://www.xuefeige.com/book/1001/1.html%20/book/1001/2.html",
+        "body_mode": "fixture",
+        "fixture_used": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/fixtures/xuefeige/chapterContent.html"
+      },
+      "parse": {
+        "list_length": 0,
+        "sample_item_keys": [
+          "content"
+        ],
+        "sample_item": {
+          "content": "这是第一章正文内容，用于验证香色闺阁 chapterContent 解析链路是否可用。正文长度需要超过最小阈值。"
+        }
+      },
+      "webview_applied_keys": [],
+      "webview_trace": [],
+      "errors": [],
+      "warnings": [
+        "chapterContent title is recommended"
+      ]
+    }
+  },
+  "runtime": {
+    "node_bin": "/opt/homebrew/bin/node",
+    "validator_root": "/Users/mantou/Documents/idea/xiangseSkill/tools/validator",
+    "validator_cli": "/Users/mantou/Documents/idea/xiangseSkill/tools/validator/src/cli.js",
+    "command": [
+      "/opt/homebrew/bin/node",
+      "/Users/mantou/Documents/idea/xiangseSkill/tools/validator/src/cli.js",
+      "run",
+      "--input",
+      "/var/folders/n9/wnjljy094376z_ydggc82dyc0000gn/T/xbs_sim_x3riauj7/xuefeige_fixed.import_fixed.json",
+      "--mode",
+      "fixture",
+      "--engine",
+      "auto",
+      "--webview-timeout",
+      "25",
+      "--keyword",
+      "都市",
+      "--page-index",
+      "1",
+      "--offset",
+      "0",
+      "--book-index",
+      "0",
+      "--chapter-index",
+      "0",
+      "--min-content-length",
+      "50",
+      "--output",
+      "/var/folders/n9/wnjljy094376z_ydggc82dyc0000gn/T/xbs_sim_x3riauj7/validator.report.json",
+      "--fixtures",
+      "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/fixtures/xuefeige"
+    ]
+  }
+}

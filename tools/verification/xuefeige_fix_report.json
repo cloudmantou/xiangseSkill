@@ -1,0 +1,35 @@
+{
+  "input": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/xuefeige_source.json",
+  "input_type": "json",
+  "decoded_json": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/xuefeige_source.json",
+  "output_json": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/xuefeige_fixed.json",
+  "output_xbs": "",
+  "default_weight": "9999",
+  "source_alias": "雪飞阁",
+  "mode": "new",
+  "changed": true,
+  "changes": [
+    "bookDetail.requestInfo:NoneType->'%@result'",
+    "chapterList.requestInfo:NoneType->'%@result'",
+    "chapterContent.requestInfo:NoneType->'%@result'",
+    "bookWorld.moreKeys.requestFilters:normalized_to_string"
+  ],
+  "schema_check": "PASS",
+  "editor_check": "WARN",
+  "editor_risk_count": 2,
+  "editor_high_risk_count": 0,
+  "editor_risks": [
+    {
+      "level": "medium",
+      "code": "NEW_SCHEMA_WRAPPER",
+      "path": "<top>",
+      "message": "使用新 schema wrapper（sourceName/sourceUrl），请执行编辑页保存回归验证"
+    },
+    {
+      "level": "medium",
+      "code": "TOP_HTTPHEADERS",
+      "path": "httpHeaders",
+      "message": "顶层 httpHeaders 是对象，属于已知保存崩溃嫌疑字段簇"
+    }
+  ]
+}

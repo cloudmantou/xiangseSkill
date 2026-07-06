@@ -1,0 +1,279 @@
+{
+  "input": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/demo_sudugu_source.json",
+  "mode": "live",
+  "engine": "auto",
+  "webview_timeout_seconds": 25,
+  "normalization": {
+    "input_type": "json",
+    "decoded_json": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/demo_sudugu_source.json",
+    "source_alias": "速读谷-sudugu-v0305(公众号:好用的软件站)",
+    "source_mode": "new",
+    "change_count": 2,
+    "changes": [
+      "weight:9999->'9999'",
+      "bookWorld.moreKeys.requestFilters:normalized_to_string"
+    ]
+  },
+  "schema_check": {
+    "status": "PASS",
+    "errors": [],
+    "warnings": [],
+    "source_count": 1
+  },
+  "editor_check": {
+    "status": "WARN",
+    "strict": false,
+    "risk_count": 8,
+    "high_risk_count": 0,
+    "medium_risk_count": 3,
+    "risks": [
+      {
+        "level": "medium",
+        "code": "NEW_SCHEMA_WRAPPER",
+        "path": "<top>",
+        "message": "使用新 schema wrapper（sourceName/sourceUrl），请执行编辑页保存回归验证"
+      },
+      {
+        "level": "medium",
+        "code": "TOP_HTTPHEADERS",
+        "path": "httpHeaders",
+        "message": "顶层 httpHeaders 是对象，属于已知保存崩溃嫌疑字段簇"
+      },
+      {
+        "level": "medium",
+        "code": "VALIDCONFIG_JSON_STRING",
+        "path": "searchBook.validConfig",
+        "message": "validConfig 为 JSON 字符串，建议降级为空字符串"
+      },
+      {
+        "level": "low",
+        "code": "REMOVEHTMLKEYS_PRESENT",
+        "path": "searchBook.moreKeys.removeHtmlKeys",
+        "message": "removeHtmlKeys 存在，建议放入 A/B 末级验证"
+      },
+      {
+        "level": "low",
+        "code": "REMOVEHTMLKEYS_PRESENT",
+        "path": "chapterList.moreKeys.removeHtmlKeys",
+        "message": "removeHtmlKeys 存在，建议放入 A/B 末级验证"
+      },
+      {
+        "level": "low",
+        "code": "REMOVEHTMLKEYS_PRESENT",
+        "path": "chapterContent.moreKeys.removeHtmlKeys",
+        "message": "removeHtmlKeys 存在，建议放入 A/B 末级验证"
+      },
+      {
+        "level": "low",
+        "code": "REMOVEHTMLKEYS_PRESENT",
+        "path": "bookWorld.分类.moreKeys.removeHtmlKeys",
+        "message": "removeHtmlKeys 存在，建议放入 A/B 末级验证"
+      },
+      {
+        "level": "low",
+        "code": "REMOVEHTMLKEYS_PRESENT",
+        "path": "bookWorld.分类导航.moreKeys.removeHtmlKeys",
+        "message": "removeHtmlKeys 存在，建议放入 A/B 末级验证"
+      }
+    ]
+  },
+  "simulation_verdict": {
+    "status": "fail",
+    "pass": false,
+    "blocked_reason": "",
+    "fail_reasons": [
+      "[searchBook.runtime] Unknown searchBook error",
+      "[searchBook.list] searchBook listLengthOnlyDebug must be >= 1",
+      "[bookDetail.runtime] Invalid URL",
+      "[bookDetail.title] bookDetail missing title/bookName/name",
+      "[chapterList.runtime] Invalid URL",
+      "[chapterList.list] chapterList listLengthOnlyDebug must be >= 1",
+      "[chapterContent.runtime] Invalid URL",
+      "[chapterContent.content] chapterContent content length should be >= 50, current=0"
+    ],
+    "warnings": [
+      "[bookDetail.author] bookDetail optional field missing: author",
+      "[bookDetail.desc] bookDetail optional field missing: desc",
+      "[bookDetail.cat] bookDetail optional field missing: cat",
+      "[bookDetail.status] bookDetail optional field missing: status",
+      "[bookDetail.cover] bookDetail optional field missing: cover",
+      "[bookDetail.lastChapterTitle] bookDetail optional field missing: lastChapterTitle",
+      "[chapterContent.title] chapterContent title is recommended"
+    ]
+  },
+  "overall_verdict": {
+    "status": "fail",
+    "pass": false
+  },
+  "steps": {
+    "searchBook": {
+      "step": "searchBook",
+      "status": "fail",
+      "runtime_engine": "auto",
+      "blocked": false,
+      "blocked_reason": "",
+      "elapsed_ms": 0,
+      "request": {
+        "method": "",
+        "url": "",
+        "http_params_count": 0,
+        "http_header_count": 0
+      },
+      "response": {
+        "status": 0,
+        "url": "",
+        "body_mode": "live",
+        "fixture_used": ""
+      },
+      "parse": {
+        "list_length": 0,
+        "sample_item_keys": [],
+        "sample_item": {}
+      },
+      "webview_applied_keys": [],
+      "webview_trace": [],
+      "errors": [
+        "Unknown searchBook error",
+        "searchBook listLengthOnlyDebug must be >= 1"
+      ],
+      "warnings": []
+    },
+    "bookDetail": {
+      "step": "bookDetail",
+      "status": "fail",
+      "runtime_engine": "auto",
+      "blocked": false,
+      "blocked_reason": "",
+      "elapsed_ms": 0,
+      "request": {
+        "method": "",
+        "url": "",
+        "http_params_count": 0,
+        "http_header_count": 0
+      },
+      "response": {
+        "status": 0,
+        "url": "",
+        "body_mode": "live",
+        "fixture_used": ""
+      },
+      "parse": {
+        "list_length": 0,
+        "sample_item_keys": [],
+        "sample_item": {}
+      },
+      "webview_applied_keys": [],
+      "webview_trace": [],
+      "errors": [
+        "Invalid URL",
+        "bookDetail missing title/bookName/name"
+      ],
+      "warnings": [
+        "bookDetail optional field missing: author",
+        "bookDetail optional field missing: desc",
+        "bookDetail optional field missing: cat",
+        "bookDetail optional field missing: status",
+        "bookDetail optional field missing: cover",
+        "bookDetail optional field missing: lastChapterTitle"
+      ]
+    },
+    "chapterList": {
+      "step": "chapterList",
+      "status": "fail",
+      "runtime_engine": "auto",
+      "blocked": false,
+      "blocked_reason": "",
+      "elapsed_ms": 0,
+      "request": {
+        "method": "",
+        "url": "",
+        "http_params_count": 0,
+        "http_header_count": 0
+      },
+      "response": {
+        "status": 0,
+        "url": "",
+        "body_mode": "live",
+        "fixture_used": ""
+      },
+      "parse": {
+        "list_length": 0,
+        "sample_item_keys": [],
+        "sample_item": {}
+      },
+      "webview_applied_keys": [],
+      "webview_trace": [],
+      "errors": [
+        "Invalid URL",
+        "chapterList listLengthOnlyDebug must be >= 1"
+      ],
+      "warnings": []
+    },
+    "chapterContent": {
+      "step": "chapterContent",
+      "status": "fail",
+      "runtime_engine": "auto",
+      "blocked": false,
+      "blocked_reason": "",
+      "elapsed_ms": 0,
+      "request": {
+        "method": "",
+        "url": "",
+        "http_params_count": 0,
+        "http_header_count": 0
+      },
+      "response": {
+        "status": 0,
+        "url": "",
+        "body_mode": "live",
+        "fixture_used": ""
+      },
+      "parse": {
+        "list_length": 0,
+        "sample_item_keys": [],
+        "sample_item": {}
+      },
+      "webview_applied_keys": [],
+      "webview_trace": [],
+      "errors": [
+        "Invalid URL",
+        "chapterContent content length should be >= 50, current=0"
+      ],
+      "warnings": [
+        "chapterContent title is recommended"
+      ]
+    }
+  },
+  "runtime": {
+    "node_bin": "/opt/homebrew/bin/node",
+    "validator_root": "/Users/mantou/Documents/idea/xiangseSkill/tools/validator",
+    "validator_cli": "/Users/mantou/Documents/idea/xiangseSkill/tools/validator/src/cli.js",
+    "command": [
+      "/opt/homebrew/bin/node",
+      "/Users/mantou/Documents/idea/xiangseSkill/tools/validator/src/cli.js",
+      "run",
+      "--input",
+      "/var/folders/n9/wnjljy094376z_ydggc82dyc0000gn/T/xbs_sim_vaj6_alt/demo_sudugu_source.import_fixed.json",
+      "--mode",
+      "live",
+      "--engine",
+      "auto",
+      "--webview-timeout",
+      "25",
+      "--keyword",
+      "都市",
+      "--page-index",
+      "1",
+      "--offset",
+      "0",
+      "--book-index",
+      "0",
+      "--chapter-index",
+      "0",
+      "--min-content-length",
+      "50",
+      "--output",
+      "/var/folders/n9/wnjljy094376z_ydggc82dyc0000gn/T/xbs_sim_vaj6_alt/validator.report.json"
+    ]
+  }
+}

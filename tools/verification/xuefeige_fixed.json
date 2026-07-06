@@ -1,0 +1,142 @@
+{
+  "雪飞阁": {
+    "bookDetail": {
+      "title": "//h1/text()",
+      "status": "//table[@class=\"table\"]//tr[3]",
+      "actionID": "bookDetail",
+      "validConfig": "",
+      "parserID": "DOM",
+      "host": "https://www.xuefeige.com",
+      "httpHeaders": {
+        "Referer": "https://www.xuefeige.com",
+        "Upgrade-Insecure-Requests": "1",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+        "Accept-Language": "zh-CN,zh;q=0.9",
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
+      },
+      "cat": "//table[@class=\"table\"]//tr[1]",
+      "cover": "//div[@class=\"bookcover col-lg-3 col-md-3 col-sm-3 col-xs-4\"]/img/@src",
+      "desc": "//div[@class=\"intro\"]",
+      "responseFormatType": "html",
+      "requestInfo": "%@result"
+    },
+    "weight": "666",
+    "miniAppVersion": "2.53.2",
+    "chapterList": {
+      "actionID": "chapterList",
+      "validConfig": "",
+      "title": "//a",
+      "host": "https://www.xuefeige.com",
+      "httpHeaders": {
+        "Referer": "https://www.xuefeige.com",
+        "Upgrade-Insecure-Requests": "1",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+        "Accept-Language": "zh-CN,zh;q=0.9",
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
+      },
+      "list": "//div[@class=\"panel panel-booklist col-lg-12 col-md-12 col-xs-12 col-sm-12\"]/ul/li",
+      "responseFormatType": "html",
+      "parserID": "DOM",
+      "url": "//a/@href",
+      "requestInfo": "%@result"
+    },
+    "searchShudan": {
+      "actionID": "searchShudan",
+      "parserID": "DOM"
+    },
+    "relatedWord": {
+      "actionID": "relatedWord",
+      "parserID": "DOM"
+    },
+    "enable": 1,
+    "sourceName": "雪飞阁",
+    "sourceType": "text",
+    "sourceUrl": "https://www.xuefeige.com",
+    "httpHeaders": {
+      "Referer": "https://www.xuefeige.com",
+      "Upgrade-Insecure-Requests": "1",
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+      "Accept-Language": "zh-CN,zh;q=0.9",
+      "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
+    },
+    "shudanDetail": {
+      "actionID": "shudanDetail",
+      "parserID": "DOM"
+    },
+    "lastModifyTime": "1663258337.866013",
+    "searchBook": {
+      "author": "//td[3]",
+      "lastChapterTitle": "//td[2]/a",
+      "responseFormatType": "html",
+      "bookName": "//td[1]/a",
+      "httpHeaders": {
+        "Referer": "https://www.xuefeige.com",
+        "Upgrade-Insecure-Requests": "1",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+        "Accept-Language": "zh-CN,zh;q=0.9",
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
+      },
+      "requestInfo": "@js:\n\nlet url=config.host+\"/search.php\";\n\nlet hh= {\n  \"User-Agent\": \"Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148\"\n};\n\nlet hp= {'search':params.keyWord,};\n\nreturn {'url':url, 'POST':false, 'httpParams':hp\n,\"httpHeaders\": config.httpHeaders,cacheTime:3600};",
+      "host": "https://www.xuefeige.com",
+      "actionID": "searchBook",
+      "detailUrl": "//td[1]/a/@href",
+      "validConfig": "",
+      "list": "//table[@class=\"table table-striped table-hover\"]//tr",
+      "parserID": "DOM"
+    },
+    "chapterContent": {
+      "validConfig": "",
+      "content": "//article[@class=\"content\"]/text()",
+      "actionID": "chapterContent",
+      "host": "https://www.xuefeige.com",
+      "httpHeaders": {
+        "Referer": "https://www.xuefeige.com",
+        "Upgrade-Insecure-Requests": "1",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+        "Accept-Language": "zh-CN,zh;q=0.9",
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
+      },
+      "responseFormatType": "html",
+      "parserID": "DOM",
+      "requestInfo": "%@result"
+    },
+    "shupingList": {
+      "actionID": "shupingList",
+      "parserID": "DOM"
+    },
+    "desc": "🙈",
+    "shudanList": {},
+    "authorId": "",
+    "bookWorld": {
+      "分类": {
+        "author": "//td[3]",
+        "responseFormatType": "html",
+        "lastChapterTitle": "//td[2]/a",
+        "bookName": "//td[1]/a",
+        "httpHeaders": {
+          "Referer": "https://www.xuefeige.com",
+          "Upgrade-Insecure-Requests": "1",
+          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+          "Accept-Language": "zh-CN,zh;q=0.9",
+          "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
+        },
+        "requestInfo": "@js:\nlet {_type}=params.filters\nlet url=`https://www.xuefeige.com${_type}/${params.pageIndex}.html`;\n\nreturn {url:url,'httpHeaders':config.httpHeaders}",
+        "host": "https://www.xuefeige.com",
+        "actionID": "bookWorld",
+        "detailUrl": "//td[1]/a/@href",
+        "moreKeys": {
+          "pageSize": 30,
+          "requestFilters": "_type\n玄幻魔法::/sort/xuanhuanmofa\n武侠修真::/sort/wuxiaxiuzhen\n都市言情::/sort/dushiyanqing\n历史军事::/sort/lishijunshi\n恐怖灵异::/sort/kongbulingyi\n侦探推理::/sort/zhentantuili\n网游动漫::/sort/wangyoudongman\n科幻小说::/sort/kehuanxiaoshuo\n散文诗词::/sort/sanwenshici\n其他类型::/sort/qita\n"
+        },
+        "validConfig": "",
+        "list": "//table[@class=\"table table-striped table-hover\"]//tr",
+        "_sIndex": 0,
+        "parserID": "DOM"
+      }
+    },
+    "shupingHome": {
+      "actionID": "shupingHome",
+      "parserID": "DOM"
+    }
+  }
+}

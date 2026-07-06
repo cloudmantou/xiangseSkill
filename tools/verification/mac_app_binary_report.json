@@ -1,0 +1,34 @@
+{
+  "binary": "/Applications/香色闺阁.app/Wrapper/StandarReader.app/StandarReader",
+  "found": [],
+  "missing": [
+    "searchBook",
+    "bookDetail",
+    "chapterList",
+    "chapterContent",
+    "webViewSkipUrlsUnless",
+    "webViewSniff",
+    "wkwebview_post",
+    "DomModelParser",
+    "BookQueryManager",
+    "LCJSTool"
+  ],
+  "lpnet_model_info": "/Applications/香色闺阁.app/Wrapper/StandarReader.app/lpnet_modelInfo",
+  "lpnet_decode_ok": true,
+  "lpnet_fields": [
+    "actionID",
+    "moreKeys",
+    "requestFunction",
+    "requestJavascript",
+    "requestParamsEncode",
+    "responseDecryptType",
+    "responseEncode",
+    "responseFormatType",
+    "responseFunction",
+    "responseJavascript",
+    "testConfig",
+    "testRegex"
+  ],
+  "pass": true,
+  "note": "App Store builds may have encrypted binaries with no plaintext strings; lpnet_modelInfo decode is accepted."
+}

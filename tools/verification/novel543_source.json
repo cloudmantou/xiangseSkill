@@ -1,0 +1,135 @@
+{
+  "稷下书院-v0707": {
+    "sourceName": "稷下书院",
+    "sourceUrl": "https://www.novel543.com/",
+    "sourceType": "text",
+    "enable": 1,
+    "weight": "9999",
+    "desc": "DOM 书源；站内 /search/ 受 Cloudflare 保护，搜索降级为书库分类浏览；v0707 修复正文 URL 优先级与同章分页",
+    "httpHeaders": {
+      "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Accept-Language": "zh-TW,zh-CN,zh;q=0.9,en;q=0.8"
+    },
+    "searchBook": {
+      "actionID": "searchBook",
+      "parserID": "DOM",
+      "validConfig": "",
+      "host": "https://www.novel543.com",
+      "responseFormatType": "html",
+      "requestInfo": "@js:\nvar cat = 'xuanhuan';\nif (params && params.filters && params.filters.category) {\n  cat = String(params.filters.category);\n}\nvar page = parseInt(params.pageIndex || 1, 10);\nif (!page || page < 1) page = 1;\nvar host = String(config.host || 'https://www.novel543.com').replace(/\\/$/, '');\nvar url = host + '/bookstack/' + cat + '/';\nif (page > 1) url = host + '/bookstack/' + cat + '/?page=' + page;\nreturn {'url': url, 'httpHeaders': config.httpHeaders};",
+      "list": "//ul[contains(@class,'list') and contains(@class,'flex')]//li[contains(@class,'media')]",
+      "bookName": "//h3/a/text()||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+      "author": "//span[@class='author']/text()||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+      "detailUrl": "//h3/a/@href||@js:\nvar u = String(result || '').trim().split(/\\s+/)[0] || '';\nreturn u;",
+      "url": "//h3/a/@href||@js:\nvar u = String(result || '').trim().split(/\\s+/)[0] || '';\nreturn u;",
+      "desc": "//p[@class='desc']/text()||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+      "nextPageUrl": "//ul[contains(@class,'pagination-list')]//a[contains(@class,'pagination-link') and not(contains(@class,'disabled'))][last()]/@href||@js:\nvar cand = String(result || '').trim();\nif (!cand) return '';\nvar cur = String(params.responseUrl || '');\nvar m1 = cur.match(/page=(\\d+)/);\nvar m2 = cand.match(/page=(\\d+)/);\nvar curPage = parseInt(m1 ? m1[1] : '1', 10);\nvar nextPage = parseInt(m2 ? m2[1] : '1', 10);\nif (!nextPage || nextPage <= curPage) return '';\nreturn cand;",
+      "moreKeys": {
+        "pageSize": 18,
+        "maxPage": 5,
+        "requestFilters": [
+          {
+            "key": "category",
+            "items": [
+              {"title": "玄幻", "value": "xuanhuan"},
+              {"title": "修真", "value": "xiuzhen"},
+              {"title": "都市", "value": "dushi"},
+              {"title": "历史", "value": "lishi"},
+              {"title": "网游", "value": "wangyou"},
+              {"title": "科幻", "value": "kehuan"},
+              {"title": "女频", "value": "nvpin"},
+              {"title": "灵异", "value": "lingyi"},
+              {"title": "同人", "value": "tongren"},
+              {"title": "军事", "value": "junshi"},
+              {"title": "悬疑", "value": "xuanyi"},
+              {"title": "穿越", "value": "chuanyue"},
+              {"title": "其它", "value": "other"}
+            ]
+          }
+        ]
+      }
+    },
+    "bookDetail": {
+      "actionID": "bookDetail",
+      "parserID": "DOM",
+      "validConfig": "",
+      "host": "https://www.novel543.com",
+      "responseFormatType": "html",
+      "requestInfo": "@js:\nvar u = '';\nif (params && params.queryInfo) u = params.queryInfo.detailUrl || params.queryInfo.url || '';\nif (!u && typeof result === 'string') u = result;\nif (!u && result && result.detailUrl) u = result.detailUrl;\nif (!u && result && result.url) u = result.url;\nif (!u && params && params.responseUrl) u = params.responseUrl;\nu = String(u).trim().split(/\\s+/)[0] || '';\nvar host = String(config.host || 'https://www.novel543.com').replace(/\\/$/, '');\nif (u && u.indexOf('http') !== 0) u = host + u;\nreturn {'url': u, 'httpHeaders': config.httpHeaders};",
+      "detailUrl": "@js:\nif (params && params.queryInfo) {\n  if (params.queryInfo.detailUrl) return params.queryInfo.detailUrl;\n  if (params.queryInfo.url) return params.queryInfo.url;\n}\nif (typeof result === 'string') return result;\nif (result && result.detailUrl) return result.detailUrl;\nif (result && result.url) return result.url;\nreturn '';",
+      "bookName": "//meta[@name='og:novel:book_name']/@content||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+      "author": "//meta[@name='og:novel:author']/@content||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+      "cover": "//meta[@name='og:image']/@content",
+      "cat": "//meta[@name='og:novel:category']/@content||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+      "status": "//meta[@name='og:novel:status']/@content||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+      "desc": "//meta[@name='og:description']/@content||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+      "lastChapterTitle": "//meta[@name='og:novel:latest_chapter_name']/@content||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+      "updateTime": "//meta[@name='og:novel:update_time']/@content||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+      "url": "@js:\nif (params && params.queryInfo) {\n  if (params.queryInfo.detailUrl) return params.queryInfo.detailUrl;\n  if (params.queryInfo.url) return params.queryInfo.url;\n}\nif (typeof result === 'string') return result;\nif (result && result.detailUrl) return result.detailUrl;\nif (result && result.url) return result.url;\nreturn '';"
+    },
+    "chapterList": {
+      "actionID": "chapterList",
+      "parserID": "DOM",
+      "validConfig": "",
+      "host": "https://www.novel543.com",
+      "responseFormatType": "html",
+      "requestInfo": "@js:\nvar host = String(config.host || 'https://www.novel543.com').replace(/\\/$/, '');\nvar u = '';\nif (params && params.queryInfo) u = params.queryInfo.url || params.queryInfo.detailUrl || '';\nif (!u && typeof result === 'string') u = result;\nif (!u && result && result.url) u = result.url;\nif (!u && result && result.detailUrl) u = result.detailUrl;\nif (!u && params && params.responseUrl) u = params.responseUrl;\nu = String(u).trim().split(/\\s+/)[0] || '';\nif (u.indexOf('/dir') < 0) {\n  var m = u.match(/\\/(\\d{8,})\\/?/);\n  if (m) u = host + '/' + m[1] + '/dir';\n}\nif (u && u.indexOf('http') !== 0) u = host + u;\nreturn {'url': u, 'httpHeaders': config.httpHeaders};",
+      "list": "//ul[contains(@class,'all')]//a",
+      "title": "//text()||@js:\nvar t = String(result || '').replace(/\\s+/g, ' ').trim();\nvar m = t.match(/第\\d+章[^第]*/);\nif (m) return m[0].trim();\nif (t.length < 80) return t;\nreturn t;",
+      "url": "//@href||@js:\nvar parts = String(result || '').trim().split(/\\s+/);\nif (parts.length === 1) return parts[0];\nvar hit = parts.find(function(x){return /\\/\\d{8,}\\/\\d+_\\d+\\.html/.test(x);});\nreturn hit || parts[0] || '';",
+      "detailUrl": "//@href||@js:\nvar parts = String(result || '').trim().split(/\\s+/);\nif (parts.length === 1) return parts[0];\nvar hit = parts.find(function(x){return /\\/\\d{8,}\\/\\d+_\\d+\\.html/.test(x);});\nreturn hit || parts[0] || '';"
+    },
+    "chapterContent": {
+      "actionID": "chapterContent",
+      "parserID": "DOM",
+      "validConfig": "",
+      "host": "https://www.novel543.com",
+      "responseFormatType": "html",
+      "requestInfo": "@js:\nvar host = String(config.host || 'https://www.novel543.com').replace(/\\/$/, '');\nfunction parseChapter(u) {\n  var m = String(u || '').match(/\\/(\\d{8,})\\/(\\d+)_([0-9]+)(?:_([0-9]+))?\\.html/i);\n  if (!m) return null;\n  return {bookId: m[1], sid: m[2], cid: parseInt(m[3], 10), sub: parseInt(m[4] || '1', 10)};\n}\nvar qi = '';\nif (params && params.queryInfo) qi = params.queryInfo.url || params.queryInfo.detailUrl || '';\nvar u = String(qi).trim().split(/\\s+/)[0] || '';\nvar np = params && params.lastResponse ? String(params.lastResponse.nextPageUrl || '').trim().split(/\\s+/)[0] : '';\nif (np && u) {\n  var a = parseChapter(np), b = parseChapter(u);\n  if (a && b && a.bookId === b.bookId && a.sid === b.sid && a.cid === b.cid && a.sub > b.sub) u = np;\n} else if (!u && np) {\n  u = np;\n}\nif (!u && result) {\n  if (typeof result === 'string') u = result;\n  else if (result.url) u = result.url;\n  else if (result.detailUrl) u = result.detailUrl;\n}\nif (!u && params && params.responseUrl) u = params.responseUrl;\nu = String(u).trim().split(/\\s+/)[0] || '';\nvar detail = '';\nif (params && params.queryInfo) detail = params.queryInfo.detailUrl || params.queryInfo.url || '';\nvar bm = String(detail).match(/\\/(\\d{8,})\\//);\nvar bookId = bm ? bm[1] : '';\nvar um = parseChapter(u);\nif (bookId && um && um.bookId !== bookId) {\n  u = '/' + bookId + '/' + um.sid + '_' + um.cid + (um.sub > 1 ? '_' + um.sub : '') + '.html';\n}\nif (u && u.indexOf('http') !== 0) u = host + u;\nvar hh = config.httpHeaders || {};\nvar headers = {'User-Agent': hh['User-Agent'] || '', 'Accept': hh['Accept'] || '', 'Accept-Language': hh['Accept-Language'] || ''};\nif (bookId) headers.Referer = host + '/' + bookId + '/';\nelse if (u) headers.Referer = u;\nreturn {'url': u, 'httpHeaders': headers};",
+      "title": "//div[@id='chapterWarp']//h1/text()||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+      "content": "//div[@id='chapterWarp']//div[contains(@class,'py-5')]||@js:\nvar html = String(result || '');\nif (!html) return '';\nhtml = html.replace(/<div[^>]*class=\"[^\"]*(?:gadBlock|adBlock)[^\"]*\"[^>]*>[\\s\\S]*?<\\/div>/gi, '');\nhtml = html.replace(/<div[^>]*style=\"[^\"]*height:\\s*100px[^\"]*\"[\\s\\S]*?<\\/div>/gi, '');\nhtml = html.replace(/<script[\\s\\S]*?<\\/script>/gi, '');\nhtml = html.replace(/<ad[^>]*>[\\s\\S]*?<\\/ad>/gi, '');\nvar text = html.replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/p>/gi, '\\n').replace(/<[^>]+>/g, '').replace(/溫馨提示[\\s\\S]*$/g, '').replace(/\\n{2,}/g, '\\n').trim();\nif (/章節錯誤|章节错误/.test(text) && text.length < 120) return '';\nreturn text;",
+      "nextPageUrl": "//div[contains(@class,'foot-nav')]//a/@href||@js:\nvar cur = String(params.responseUrl || '');\nfunction parse(u) {\n  var m = String(u || '').match(/\\/(\\d{8,})\\/(\\d+)_([0-9]+)(?:_([0-9]+))?\\.html/i);\n  if (!m) return null;\n  return {bookId: m[1], sid: m[2], cid: parseInt(m[3], 10), sub: parseInt(m[4] || '1', 10)};\n}\nvar c1 = parse(cur);\nif (!c1) return '';\nvar parts = String(result || '').trim().split(/\\s+/);\nfor (var i = 0; i < parts.length; i++) {\n  var c2 = parse(parts[i]);\n  if (!c2) continue;\n  if (c1.bookId === c2.bookId && c1.sid === c2.sid && c1.cid === c2.cid && c2.sub > c1.sub) return parts[i];\n}\nreturn '';"
+    },
+    "bookWorld": {
+      "书库": {
+        "actionID": "bookWorld",
+        "parserID": "DOM",
+        "validConfig": "",
+        "host": "https://www.novel543.com",
+        "responseFormatType": "html",
+        "requestInfo": "@js:\nvar cat = 'xuanhuan';\nif (params && params.filters && params.filters.category) {\n  cat = String(params.filters.category);\n}\nvar page = parseInt(params.pageIndex || 1, 10);\nif (!page || page < 1) page = 1;\nvar host = String(config.host || 'https://www.novel543.com').replace(/\\/$/, '');\nvar url = host + '/bookstack/' + cat + '/';\nif (page > 1) url = host + '/bookstack/' + cat + '/?page=' + page;\nreturn {'url': url, 'httpHeaders': config.httpHeaders};",
+        "list": "//ul[contains(@class,'list') and contains(@class,'flex')]//li[contains(@class,'media')]",
+        "bookName": "//h3/a/text()||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+        "author": "//span[@class='author']/text()||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+        "detailUrl": "//h3/a/@href",
+        "desc": "//p[@class='desc']/text()||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+        "_sIndex": 0,
+        "moreKeys": {
+          "pageSize": 18,
+          "maxPage": 3,
+          "requestFilters": [
+            {
+              "key": "category",
+              "items": [
+                {"title": "玄幻", "value": "xuanhuan"},
+                {"title": "修真", "value": "xiuzhen"},
+                {"title": "都市", "value": "dushi"},
+                {"title": "历史", "value": "lishi"},
+                {"title": "网游", "value": "wangyou"},
+                {"title": "科幻", "value": "kehuan"},
+                {"title": "女频", "value": "nvpin"},
+                {"title": "灵异", "value": "lingyi"},
+                {"title": "同人", "value": "tongren"},
+                {"title": "军事", "value": "junshi"},
+                {"title": "悬疑", "value": "xuanyi"},
+                {"title": "穿越", "value": "chuanyue"},
+                {"title": "其它", "value": "other"}
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

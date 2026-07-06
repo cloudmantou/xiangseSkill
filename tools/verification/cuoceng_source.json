@@ -1,0 +1,150 @@
+{
+  "错层小说网-v0713": {
+    "sourceName": "错层小说网",
+    "sourceUrl": "https://m.cuoceng.org/",
+    "sourceType": "text",
+    "enable": 1,
+    "weight": "9999",
+    "desc": "DOM 书源；搜索降级为分类遍历+关键词过滤（Cloudflare 拦截站内搜索）",
+    "httpHeaders": {
+      "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Accept-Language": "zh-CN,zh;q=0.9"
+    },
+    "searchBook": {
+      "actionID": "searchBook",
+      "parserID": "DOM",
+      "validConfig": "",
+      "host": "https://m.cuoceng.org",
+      "responseFormatType": "html",
+      "requestInfo": "@js:\nvar cat = '6b09b233-4d99-4f8f-aeb0-f9772e107d49';\nif (params && params.filters && params.filters.category) {\n  cat = String(params.filters.category);\n}\nvar page = parseInt(params.pageIndex || 1, 10);\nif (!page || page < 1) page = 1;\nvar url = config.host + '/book/category/' + cat + '.html';\nif (page > 1) url = config.host + '/book/category/' + cat + '/' + page + '.html';\nreturn {'url': url, 'httpHeaders': config.httpHeaders};",
+      "list": "//div[@class='bookbox']",
+      "bookName": "//h2[@class='bookname']/a/text()||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+      "author": "//div[@class='author'][contains(.,'作者')]/text()||@js:return String(result || '').replace('作者：', '').replace(/\\s+/g, ' ').trim();",
+      "detailUrl": "//h2[@class='bookname']/a/@href||@js:\nvar u = String(result || '').trim().split(/\\s+/)[0] || '';\nreturn u;",
+      "url": "//h2[@class='bookname']/a/@href||@js:\nvar u = String(result || '').trim().split(/\\s+/)[0] || '';\nreturn u;",
+      "lastChapterTitle": "//div[@class='cat']/a/text()||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+      "desc": "//div[@class='update']/text()||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+      "moreKeys": {
+        "pageSize": 12,
+        "maxPage": 3,
+        "requestFilters": [
+          {
+            "key": "category",
+            "items": [
+              {"title": "玄幻", "value": "6b09b233-4d99-4f8f-aeb0-f9772e107d49"},
+              {"title": "仙侠", "value": "c91e0ef9-ad94-480e-a629-4cbddcdd1e3f"},
+              {"title": "都市", "value": "951b15a8-ba9f-4fbd-9790-6df513be5343"},
+              {"title": "历史", "value": "fa7b085f-64ff-4763-a9b9-d0f4f8b98585"},
+              {"title": "科幻", "value": "f7ba5880-1f1e-4938-adb6-ebf4b2217e24"},
+              {"title": "军事", "value": "322eb578-6830-4080-9c54-66a06869aa90"},
+              {"title": "言情", "value": "ed26a15a-9704-459c-9098-532d5edb6b28"},
+              {"title": "轻小说", "value": "b7854bea-86da-4e4e-a530-39075be915df"},
+              {"title": "悬疑", "value": "5456c937-4501-4328-b3b9-c101249539ec"},
+              {"title": "奇幻", "value": "c19ac87c-fad1-4924-8d9f-5d0d6445a62e"},
+              {"title": "游戏", "value": "5ebd2d1f-6efb-478a-b5f9-628aba9146f9"},
+              {"title": "诸天无限", "value": "8dcf411a-99c9-4348-a924-990474f67296"},
+              {"title": "武侠", "value": "258cfd48-26ec-4f2d-9faa-4ffe2310dcb7"},
+              {"title": "重生", "value": "c4f8bd09-5cfa-4098-b31f-a55528cda380"},
+              {"title": "体育", "value": "ccf0bf05-03ae-45f3-8126-ee4670819a5c"},
+              {"title": "现实", "value": "a1c1c751-8804-4c40-964e-85cdb6c2f8d5"},
+              {"title": "穿越", "value": "b96517a8-4171-455f-9cff-89aea91f52d6"},
+              {"title": "未删减", "value": "897f3934-b5b5-4bde-9b89-f5038595bc07"}
+            ]
+          }
+        ]
+      }
+    },
+    "bookDetail": {
+      "actionID": "bookDetail",
+      "parserID": "DOM",
+      "validConfig": "",
+      "host": "https://m.cuoceng.org",
+      "responseFormatType": "html",
+      "requestInfo": "@js:\nvar u = '';\nif (params && params.queryInfo) u = params.queryInfo.detailUrl || params.queryInfo.url || '';\nif (!u && typeof result === 'string') u = result;\nif (!u && result && result.detailUrl) u = result.detailUrl;\nif (!u && result && result.url) u = result.url;\nif (!u && params && params.responseUrl) u = params.responseUrl;\nu = String(u).trim().split(/\\s+/)[0] || '';\nvar host = String(config.host || 'https://m.cuoceng.org');\nif (u && u.indexOf('http') !== 0) u = host + u;\nreturn {'url': u, 'httpHeaders': config.httpHeaders};",
+      "detailUrl": "@js:\nif (params && params.queryInfo) {\n  if (params.queryInfo.detailUrl) return params.queryInfo.detailUrl;\n  if (params.queryInfo.url) return params.queryInfo.url;\n}\nif (typeof result === 'string') return result;\nif (result && result.detailUrl) return result.detailUrl;\nif (result && result.url) return result.url;\nreturn '';",
+      "bookName": "//h1[@class='booktitle']/text()||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+      "author": "//p[@class='booktag']/a[@class='red']/text()||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+      "cover": "//div[contains(@class,'bookcover')]//img[@class='thumbnail']/@src",
+      "cat": "//p[@class='booktag']/a[@class='blue'][1]/text()||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+      "status": "//p[@class='booktag']/span[@class='red']/text()||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+      "desc": "//p[@class='bookintro']/text()||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+      "lastChapterTitle": "//a[@class='bookchapter']/text()||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+      "updateTime": "//p[@class='booktime']/text()||@js:return String(result || '').replace('更新时间：', '').replace(/\\s+/g, ' ').trim();",
+      "url": "@js:\nif (params && params.queryInfo) {\n  if (params.queryInfo.detailUrl) return params.queryInfo.detailUrl;\n  if (params.queryInfo.url) return params.queryInfo.url;\n}\nif (typeof result === 'string') return result;\nif (result && result.detailUrl) return result.detailUrl;\nif (result && result.url) return result.url;\nreturn '';"
+    },
+    "chapterList": {
+      "actionID": "chapterList",
+      "parserID": "DOM",
+      "validConfig": "",
+      "host": "https://m.cuoceng.org",
+      "responseFormatType": "html",
+      "requestInfo": "@js:\nvar host = String(config.host || 'https://m.cuoceng.org');\nvar u = '';\nif (params && params.queryInfo) u = params.queryInfo.url || params.queryInfo.detailUrl || '';\nif (!u && typeof result === 'string') u = result;\nif (!u && result && result.url) u = result.url;\nif (!u && result && result.detailUrl) u = result.detailUrl;\nif (!u && params && params.responseUrl) u = params.responseUrl;\nu = String(u).trim().split(/\\s+/)[0] || '';\nif (u.indexOf('/book/chapter/') < 0) {\n  var m = u.match(/\\/book\\/([a-f0-9-]+)\\.html/i);\n  if (m) u = host + '/book/chapter/' + m[1] + '.html';\n}\nif (u && u.indexOf('http') !== 0) u = host + u;\nreturn {'url': u, 'httpHeaders': config.httpHeaders};",
+      "list": "//div[@id='allchapter']//dd/a",
+      "title": "//text()",
+      "url": "//@href",
+      "detailUrl": "//@href",
+      "nextPageUrl": "//a[@id='linkNext']/@href||@js:\nvar cand = String(result || '').trim();\nif (!cand) return '';\nvar cur = String(params.responseUrl || '');\nvar m1 = cur.match(/\\/book\\/chapter\\/([a-f0-9-]+)(?:\\/(\\d+))?\\.html/i);\nvar m2 = cand.match(/\\/book\\/chapter\\/([a-f0-9-]+)\\/(\\d+)\\.html/i);\nif (!m1 || !m2) return '';\nif (m1[1] !== m2[1]) return '';\nvar curPage = parseInt(m1[2] || '1', 10);\nvar nextPage = parseInt(m2[2], 10);\nif (!nextPage || nextPage <= curPage) return '';\nreturn cand;",
+      "moreKeys": {
+        "maxPage": 10
+      }
+    },
+    "chapterContent": {
+      "actionID": "chapterContent",
+      "parserID": "DOM",
+      "validConfig": "",
+      "host": "https://m.cuoceng.org",
+      "responseFormatType": "html",
+      "requestInfo": "@js:\nvar host = String(config.host || 'https://m.cuoceng.org');\nvar u = '';\nif (params && params.lastResponse && params.lastResponse.nextPageUrl) u = params.lastResponse.nextPageUrl;\nif (!u && params && params.queryInfo) u = params.queryInfo.url || params.queryInfo.detailUrl || '';\nif (!u && result) {\n  if (typeof result === 'string') u = result;\n  else if (result.url) u = result.url;\n  else if (result.detailUrl) u = result.detailUrl;\n}\nif (!u && params && params.responseUrl) u = params.responseUrl;\nu = String(u).trim().split(/\\s+/)[0] || '';\nif (u && u.indexOf('http') !== 0) u = host + u;\nvar hh = config.httpHeaders || {};\nvar headers = {'User-Agent': hh['User-Agent'] || '', 'Accept': hh['Accept'] || '', 'Accept-Language': hh['Accept-Language'] || ''};\nif (u) headers.Referer = u;\nreturn {'url': u, 'httpHeaders': headers};",
+      "title": "//h1[@class='pt10']/text()||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+      "content": "//div[@id='content']||@js:\nvar html = String(result || '');\nif (!html) return '';\nreturn html.replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/p>/gi, '\\n').replace(/<[^>]+>/g, '').replace(/\\n{2,}/g, '\\n').trim();",
+      "nextPageUrl": "@js:return '';"
+    },
+    "bookWorld": {
+      "分类": {
+        "actionID": "bookWorld",
+        "parserID": "DOM",
+        "validConfig": "",
+        "host": "https://m.cuoceng.org",
+        "responseFormatType": "html",
+        "requestInfo": "@js:\nvar cat = '6b09b233-4d99-4f8f-aeb0-f9772e107d49';\nif (params && params.filters && params.filters.category) {\n  cat = String(params.filters.category);\n}\nvar page = parseInt(params.pageIndex || 1, 10);\nif (!page || page < 1) page = 1;\nvar url = config.host + '/book/category/' + cat + '.html';\nif (page > 1) url = config.host + '/book/category/' + cat + '/' + page + '.html';\nreturn {'url': url, 'httpHeaders': config.httpHeaders};",
+        "list": "//div[@class='bookbox']",
+        "bookName": "//h2[@class='bookname']/a/text()||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+        "author": "//div[@class='author'][contains(.,'作者')]/text()||@js:return String(result || '').replace('作者：', '').replace(/\\s+/g, ' ').trim();",
+        "detailUrl": "//h2[@class='bookname']/a/@href",
+        "lastChapterTitle": "//div[@class='cat']/a/text()||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+        "desc": "//div[@class='update']/text()||@js:return String(result || '').replace(/\\s+/g, ' ').trim();",
+        "_sIndex": 0,
+        "moreKeys": {
+          "pageSize": 12,
+          "maxPage": 1,
+          "requestFilters": [
+            {
+              "key": "category",
+              "items": [
+                {"title": "玄幻", "value": "6b09b233-4d99-4f8f-aeb0-f9772e107d49"},
+                {"title": "仙侠", "value": "c91e0ef9-ad94-480e-a629-4cbddcdd1e3f"},
+                {"title": "都市", "value": "951b15a8-ba9f-4fbd-9790-6df513be5343"},
+                {"title": "历史", "value": "fa7b085f-64ff-4763-a9b9-d0f4f8b98585"},
+                {"title": "科幻", "value": "f7ba5880-1f1e-4938-adb6-ebf4b2217e24"},
+                {"title": "军事", "value": "322eb578-6830-4080-9c54-66a06869aa90"},
+                {"title": "言情", "value": "ed26a15a-9704-459c-9098-532d5edb6b28"},
+                {"title": "轻小说", "value": "b7854bea-86da-4e4e-a530-39075be915df"},
+                {"title": "悬疑", "value": "5456c937-4501-4328-b3b9-c101249539ec"},
+                {"title": "奇幻", "value": "c19ac87c-fad1-4924-8d9f-5d0d6445a62e"},
+                {"title": "游戏", "value": "5ebd2d1f-6efb-478a-b5f9-628aba9146f9"},
+                {"title": "诸天无限", "value": "8dcf411a-99c9-4348-a924-990474f67296"},
+                {"title": "武侠", "value": "258cfd48-26ec-4f2d-9faa-4ffe2310dcb7"},
+                {"title": "重生", "value": "c4f8bd09-5cfa-4098-b31f-a55528cda380"},
+                {"title": "体育", "value": "ccf0bf05-03ae-45f3-8126-ee4670819a5c"},
+                {"title": "现实", "value": "a1c1c751-8804-4c40-964e-85cdb6c2f8d5"},
+                {"title": "穿越", "value": "b96517a8-4171-455f-9cff-89aea91f52d6"},
+                {"title": "未删减", "value": "897f3934-b5b5-4bde-9b89-f5038595bc07"}
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

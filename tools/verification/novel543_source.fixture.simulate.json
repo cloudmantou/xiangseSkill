@@ -1,0 +1,271 @@
+{
+  "input": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/novel543_source.json",
+  "mode": "fixture",
+  "engine": "auto",
+  "webview_timeout_seconds": 25,
+  "normalization": {
+    "input_type": "json",
+    "decoded_json": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/novel543_source.json",
+    "source_alias": "稷下书院-v0707",
+    "source_mode": "new",
+    "change_count": 1,
+    "changes": [
+      "bookWorld.moreKeys.requestFilters:normalized_to_string"
+    ]
+  },
+  "schema_check": {
+    "status": "PASS",
+    "errors": [],
+    "warnings": [],
+    "source_count": 1
+  },
+  "editor_check": {
+    "status": "WARN",
+    "strict": false,
+    "risk_count": 2,
+    "high_risk_count": 0,
+    "medium_risk_count": 2,
+    "risks": [
+      {
+        "level": "medium",
+        "code": "NEW_SCHEMA_WRAPPER",
+        "path": "<top>",
+        "message": "使用新 schema wrapper（sourceName/sourceUrl），请执行编辑页保存回归验证"
+      },
+      {
+        "level": "medium",
+        "code": "TOP_HTTPHEADERS",
+        "path": "httpHeaders",
+        "message": "顶层 httpHeaders 是对象，属于已知保存崩溃嫌疑字段簇"
+      }
+    ]
+  },
+  "simulation_verdict": {
+    "status": "pass",
+    "pass": true,
+    "blocked_reason": "",
+    "fail_reasons": [],
+    "warnings": [
+      "[searchBook.status] searchBook optional field missing: status",
+      "[searchBook.lastChapterTitle] searchBook optional field missing: lastChapterTitle",
+      "[searchBook.cat] searchBook optional field missing: cat",
+      "[searchBook.cover] searchBook optional field missing: cover",
+      "[bookDetail.desc] bookDetail optional field missing: desc"
+    ]
+  },
+  "overall_verdict": {
+    "status": "pass",
+    "pass": true
+  },
+  "steps": {
+    "searchBook": {
+      "step": "searchBook",
+      "status": "pass",
+      "runtime_engine": "http",
+      "blocked": false,
+      "blocked_reason": "",
+      "elapsed_ms": 259,
+      "request": {
+        "method": "GET",
+        "url": "https://www.novel543.com/bookstack/xuanhuan/",
+        "http_params_count": 0,
+        "http_header_count": 3
+      },
+      "response": {
+        "status": 200,
+        "url": "https://www.novel543.com/bookstack/xuanhuan/",
+        "body_mode": "fixture",
+        "fixture_used": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/samples/novel543/searchBook.html"
+      },
+      "parse": {
+        "list_length": 18,
+        "sample_item_keys": [
+          "author",
+          "bookName",
+          "desc",
+          "detailUrl",
+          "nextPageUrl",
+          "url"
+        ],
+        "sample_item": {
+          "bookName": "修仙之男鼎爐的自救指南 都大帝晚年了，跟我說多子多福？ 開局真太監，幫皇帝傳宗接代 帶著修仙遊戲回到古代當神仙 西遊大佬太多，可我讓它更多 天道之女怎麼會有這種先天聖體啊 女尊：不知道啊，我按照劇本演的 女尊：轉生魅魔之異世的奇幻冒險 休了四個獸夫后，我契約了六個 穿成龍傲天的早逝病弱崽 仙子戰敗后，我覺醒了仙奴手冊 西遊記 玄幻：人在廢丹房，我能變廢為寶 開局午門斬首，我在萬人面前成仙 晚年被弟子背刺，重生我黑化了 男生女相，女主們都不太對勁 頂級世家大小姐，全族撐腰誰敢動 五歲小祖宗修仙歸來，侄孫滿堂了",
+          "author": "陳小麟很陽光 雨落心誠 胸口碎大石 我是大豬蹄子 西風孤影瘦 泠言泠語 一山一木兮 狂啃披薩餅 秋婉雨夜 身高三米八 魚魚魚魚籽 漫神共創 七秒的魚 桃凈凈 神言惑眾 幾度良宵 辭憂辭憂辭去憂愁 異月霜華",
+          "detailUrl": "/0618696941/",
+          "url": "/0618696941/",
+          "desc": "【雙男主，男頻風格與世界觀，追求長生，主角自強不息】陳羽胎穿成皇子，因陰陽珠保留前世記憶，不當皇子... 姜昊宇穿越到荒古世界，一路橫掃群雄，敗盡天驕，成為一個時代的唯一。斬至尊，平黑暗動亂，被世人尊稱為... “叮，冷宮打卡五年，系統開啟！”“天命大反派系統綁定成功。”“任務刷新【開枝散葉】，一年內擁有一名... （評分剛出，後面會漲）【不立宗，不收徒，不聖母，不虐主，殺伐果斷，長生無敵，遺世獨立，惟我獨仙。】 ... 【西遊】+【洪荒】+【氣運逆天】+【小人物崛起】李奇重生洪荒西遊，在混沌祝福下，成為了一隻氣運逆天的凡... 【穿越+變百+萬雌王+父“慈”女“孝”】簡介：東方泠淵一不小心熬夜熬沒了，靈魂穿越到異世界去了。恰好... 一次意外將柳清來到女尊世界[虐文]寫的不太好，大家隨便看看就行……“叮，宿主你好，劇本系統為你服務”... （女尊+男扮女裝（被迫）+魅魔+不無敵+西幻+穿越+盛世美顏+萬人迷+系統）（多紅顏）避雷：進入學院會有男... （穿越+大佬+獸魂+強制契約+升級流+1vN）林清蘊修鍊千年的靈符師，穿到第一天，以為自己拿的是女強爽文劇... 龍傲天的養崽日常。沈寂作為龍傲天文里的爽文男主，活了數萬年一路披荊斬棘成為當世頂峰，誰知在平平無奇... 魔潮入侵后，修仙世界里的仙子淪為街頭明碼標價的仙奴。從此，貴人們的坐騎不再是馬，看門的也不再是狗…... 還記得那個有72變，法力通天的弼馬溫嗎?對那個只知道吃和美色的天蓬元帥還有印象嗎？捲簾大將、金蟬子，如... 【凡人流、苟道、多女主、扮豬吃虎、殺伐果斷】陸塵一睜眼，發現自己魂穿合歡宗，成了煉丹房雜役，而與他同... 沈清辭穿越了。穿越的時機非常好——午門斬首，刀正落下。萬人圍觀，百官列席，皇帝高坐城樓。所有人都... 葉青有九個弟子。 大弟子蘇清寒，白衣劍仙。 二弟子姜凰，大風女帝。 三弟子白素，妖族妖皇。... 好消息：穿越了壞消息：明明是男生，卻有著仙子般的容顏如果說有什麼能讓胎穿到這個修真世界的江疏感到不... 【大女主+頂級隱世家族+系統+無CP+忠犬龍鳳胎弟弟+救世】高考考場，南宮知佑落下試卷最後一筆。系統之音... 修仙界第一劍尊許靈，剛渡劫成功，就被天道一腳踹回現代，還變成五歲小娃娃，需要找回離散百年的親人，償還...",
+          "nextPageUrl": ""
+        }
+      },
+      "webview_applied_keys": [],
+      "webview_trace": [],
+      "errors": [],
+      "warnings": [
+        "searchBook optional field missing: status",
+        "searchBook optional field missing: lastChapterTitle",
+        "searchBook optional field missing: cat",
+        "searchBook optional field missing: cover"
+      ]
+    },
+    "bookDetail": {
+      "step": "bookDetail",
+      "status": "pass",
+      "runtime_engine": "http",
+      "blocked": false,
+      "blocked_reason": "",
+      "elapsed_ms": 45,
+      "request": {
+        "method": "GET",
+        "url": "https://www.novel543.com/0618696941/",
+        "http_params_count": 0,
+        "http_header_count": 3
+      },
+      "response": {
+        "status": 200,
+        "url": "https://www.novel543.com/0618696941/",
+        "body_mode": "fixture",
+        "fixture_used": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/samples/novel543/bookDetail.html"
+      },
+      "parse": {
+        "list_length": 0,
+        "sample_item_keys": [
+          "author",
+          "bookName",
+          "cat",
+          "cover",
+          "desc",
+          "detailUrl",
+          "lastChapterTitle",
+          "status",
+          "updateTime",
+          "url"
+        ],
+        "sample_item": {
+          "detailUrl": "/0618696941/",
+          "bookName": "修仙之男鼎爐的自救指南",
+          "author": "陳小麟很陽光",
+          "cover": "https://i1.novel543.com/images/nocover.jpg",
+          "cat": "玄幻",
+          "status": "連載",
+          "desc": "",
+          "lastChapterTitle": "第71章 並肩作戰",
+          "updateTime": "2026-07-06 05:45:06",
+          "url": "/0618696941/"
+        }
+      },
+      "webview_applied_keys": [],
+      "webview_trace": [],
+      "errors": [],
+      "warnings": [
+        "bookDetail optional field missing: desc"
+      ]
+    },
+    "chapterList": {
+      "step": "chapterList",
+      "status": "pass",
+      "runtime_engine": "http",
+      "blocked": false,
+      "blocked_reason": "",
+      "elapsed_ms": 91,
+      "request": {
+        "method": "GET",
+        "url": "https://www.novel543.com/0618696941/dir",
+        "http_params_count": 0,
+        "http_header_count": 3
+      },
+      "response": {
+        "status": 200,
+        "url": "https://www.novel543.com/0618696941/dir",
+        "body_mode": "fixture",
+        "fixture_used": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/samples/novel543/chapterList.html"
+      },
+      "parse": {
+        "list_length": 71,
+        "sample_item_keys": [
+          "detailUrl",
+          "title",
+          "url"
+        ],
+        "sample_item": {
+          "title": "第71章 並肩作戰",
+          "url": "/0618696941/8096_71.html",
+          "detailUrl": "/0618696941/8096_71.html"
+        }
+      },
+      "webview_applied_keys": [],
+      "webview_trace": [],
+      "errors": [],
+      "warnings": []
+    },
+    "chapterContent": {
+      "step": "chapterContent",
+      "status": "pass",
+      "runtime_engine": "http",
+      "blocked": false,
+      "blocked_reason": "",
+      "elapsed_ms": 30,
+      "request": {
+        "method": "GET",
+        "url": "https://www.novel543.com/0618696941/8096_71.html",
+        "http_params_count": 0,
+        "http_header_count": 4
+      },
+      "response": {
+        "status": 200,
+        "url": "https://www.novel543.com/0618696941/8096_71.html",
+        "body_mode": "fixture",
+        "fixture_used": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/samples/novel543/chapterContent.html"
+      },
+      "parse": {
+        "list_length": 0,
+        "sample_item_keys": [
+          "content",
+          "nextPageUrl",
+          "title"
+        ],
+        "sample_item": {
+          "title": "第1章 下班去看流星雨",
+          "content": "第1章 下班去看流星雨藍星，某傳媒公司。 陳羽的眼睛死死盯著電腦屏幕右下角的時間數字。 辦公室里的鍵盤敲擊聲已經零零散散，有人開始收拾東西，有人端著杯子去接今天最後一趟水。陳羽的剪輯軟體還開著，四分鐘視頻卡在最後兩幀，他拇指懸在滑鼠左鍵上，眼睛一眨不眨。 數字跳動。 17:58。 17:59。 啪。 軟體關閉，工程保存。隨後拿起手機點開了桌面角落那個藍色的打卡軟體，人臉識別界面彈出來的瞬間，時間跳轉：18:00。 識別通過。電腦關機。 陳羽一把抓起桌角的鑰匙，起身就往門外走。 電梯？不可能。 這個點，電梯比外賣還難等。陳羽頭也不回地推開樓梯間的門，一步兩級台階往下沖。 十二樓。 腳步聲在空曠的樓梯間里回蕩，沒人說話，只有喘氣聲和咚咚咚的下樓聲。 九樓，膝蓋開始發酸。 六樓，呼吸變重。 三樓，小腿肌肉繃緊。 推開一樓安全門的時候，陳羽扶著牆喘了口氣。門外是傍晚的天光，城市的喧囂湧進來，邁開步子走進下班的人流里。 腳步有點虛。 剪輯視頻聽起來輕鬆，對著一台電腦坐8個小時，全程靠腦子判斷節奏、卡點、找鏡頭，精神一直綳著。到下班這一刻鬆懈下來，疲憊感就出來了。 地鐵站在兩個路口外。 陳羽隨著人群往前走，腦子裡空蕩蕩的。 這個點，地鐵口已經排起了隊。穿西裝的白領，穿工服的廠哥廠姐，背著書包的學生，所有人都低著頭看手機，隊伍緩慢地往前挪。安檢，掃碼，過閘機。 站台上擠滿了人，陳羽找了個角落靠著。列車進站的聲音由遠及近，門開，裡面的人往外擠，外面的人往裡涌。 陳羽被人流卷進去，勉強在門邊站穩，後背貼著冰涼的玻璃。 好擠啊，想看手機都費勁，手臂抬起來都怕碰到別人。陳羽喃喃道。 突然想起上個月看中的那款車，十萬出頭，首付三萬。當時差點就下單了，最後還是算了。買車容易養車難，油費、停車費、保險、保養，一個月下來小兩千。 而且，從公司到家，地鐵就二十分鐘。開車呢？這個點，路上堵得一動不動。 算了。 18:30，陳羽走出地鐵站。天色已經暗透，路燈一盞盞亮起來。他住的老小區，沒有電梯，六樓。爬上去的時候，每一步都感覺腿不是自己的。 打開房門，屋裡漆黑，陳羽按亮燈，把背包丟在沙發上，進了廚房。冰箱里還有昨天剩的米飯，兩個雞蛋，半根胡蘿蔔。他開了火，倒油，打蛋，簡單炒了個蛋炒飯。 端著碗坐在茶几前吃的時候，手機震了一下。 工作群主管發了條消息：“明天上午十點開會，所有人必須參加。” 陳羽扒了一口飯，沒回。 明天周六，大小周，這周是小周，得上班。開會……大概又是說流量數據，下個月KPI。陳羽想起上家公司，傳統媒體公司，一個十分鐘的宣傳片，客戶能讓你改十幾二十稿。現在的自媒體公司好歹內部審核完就能發，至於能不能爆，看運氣。 但看命也有看命的焦慮。流量好的時候，一天幾十萬點贊，評論區熱熱鬧鬧。流量差的時候，發出去像石沉大海，一個點贊還是自己點的。 工資呢？入職時說好轉正後七千，幹了半年，老闆說行業不景氣，降到六千五。上個月又說效益不好，降到六千。陳羽提過一次加薪，老闆笑眯眯地說：“小陳啊，你看現在外面工作多難找，咱們公司氛圍好，不加班，你要珍惜。” 氛圍好？是不加班，但工資也低啊，六千還算了績效呢。 陳羽沒再爭。之前離職的那個同事，找了三個月工作，最後去送外賣了。 吃完飯，熱水沖在肩膀上，舒服得他嘆了口氣。擦乾頭髮出來，陳羽突然想起來，新聞說今晚有流星雨。 他站在客廳里猶豫了三秒。累，想躺著。但流星雨……好久沒看過了。上一次看流星還是小學，在鄉下外婆家，半夜被媽媽叫起來，裹著被子坐在院子里，看見一顆銀亮的線劃過夜空，還沒來得及許願就消失了。 (function(){ \"undefined\"==typeof window.TAMadLoadA&&function(a,e,f,g,b,c,d){a[b]=a[b]||{};a[b].send=a[b].send||function(){(a[b].q=a[b].q||[]).push(arguments)};c=e.createElement(f);d=e.getElementsByTagName(f)[0];c.async=1;c.src=\"https://adc.tamedia.com.tw/rmadp/static/js/\"+g;d.parentNode.insertBefore(c,d)}(window,document,\"script\",\"sdk-async-v2.js\",\"TAMadLoadA\"); window.TAMadLoadA.send('TAMedia_AD', '', 'b9z1713409295727f5', '', 'div-tam-ad-b9z1713409295727f5', true, 0, function(status){ console.log('%c[TAMedia]%c Callback status : ' + status, 'background:#DDDDDD;color:#FF5511;', 'background:#DDDDDD;color:#000000;'); }); })();",
+          "nextPageUrl": ""
+        }
+      },
+      "webview_applied_keys": [],
+      "webview_trace": [],
+      "errors": [],
+      "warnings": []
+    }
+  },
+  "runtime": {
+    "node_bin": "/opt/homebrew/bin/node",
+    "validator_root": "/Users/mantou/Documents/idea/xiangseSkill/tools/validator",
+    "validator_cli": "/Users/mantou/Documents/idea/xiangseSkill/tools/validator/src/cli.js",
+    "command": [
+      "/opt/homebrew/bin/node",
+      "/Users/mantou/Documents/idea/xiangseSkill/tools/validator/src/cli.js",
+      "run",
+      "--input",
+      "/var/folders/n9/wnjljy094376z_ydggc82dyc0000gn/T/xbs_sim_h0kvggst/novel543_source.import_fixed.json",
+      "--mode",
+      "fixture",
+      "--engine",
+      "auto",
+      "--webview-timeout",
+      "25",
+      "--keyword",
+      "修仙",
+      "--page-index",
+      "1",
+      "--offset",
+      "0",
+      "--book-index",
+      "0",
+      "--chapter-index",
+      "0",
+      "--min-content-length",
+      "50",
+      "--output",
+      "/var/folders/n9/wnjljy094376z_ydggc82dyc0000gn/T/xbs_sim_h0kvggst/validator.report.json",
+      "--fixtures",
+      "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/samples/novel543"
+    ]
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "binary": "/Users/mantou/Documents/idea/xiangseSkill/Tg@TrollstoreKios.app/Tg@TrollstoreKios",
+  "lpnet_modelInfo": "/Users/mantou/Documents/idea/xiangseSkill/Tg@TrollstoreKios.app/lpnet_modelInfo",
+  "actions_found": [
+    "bookDetail",
+    "bookWorld",
+    "chapterContent",
+    "chapterList",
+    "searchBook"
+  ],
+  "actions_missing": [],
+  "webview_found": [
+    "webView",
+    "webViewJs",
+    "webViewJsDelay",
+    "webViewSkipUrls",
+    "webViewSkipUrlsUnless",
+    "webViewSniff"
+  ],
+  "webview_missing": [],
+  "runtime_found": [
+    "config",
+    "lastResponse",
+    "params",
+    "queryInfo",
+    "responseUrl",
+    "result"
+  ],
+  "classes_found": [
+    "BookQueryManager",
+    "DomModelParser",
+    "LCJSTool",
+    "LPNetWork2",
+    "SMJJSONPath",
+    "TFHpple"
+  ],
+  "responseFormatType_values": [
+    "",
+    "base64str",
+    "html",
+    "xml",
+    "json",
+    "data"
+  ],
+  "responseDecryptType_values": [
+    "",
+    "encryptType1"
+  ],
+  "wkwebview_post_present": true,
+  "bookWorld_categories_present": false
+}

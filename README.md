@@ -1,9 +1,9 @@
 # xiangseSkill
 
 香色闺阁（StandarReader 2.56.1）书源开发资料仓库，聚焦三件事：
+- **AI + Skill 根据网站写书源**（网站 → JSON → 校验 → XBS → 导入 App）
 - 书源格式转换（JSON <-> XBS）
-- Codex 技能（skill）沉淀
-- 实战规则文档维护
+- Codex 技能（skill）沉淀与实战规则维护
 
 注意：本仓仅服务香色闺阁 2.56.1，不承担安卓阅读/跨客户端兼容目标。
 
@@ -36,6 +36,7 @@
 - `skills/global/`: 通用技能
   - `xbs-booksource-workflow.SKILL.md`
 - `skills/local/`: 项目约束技能
+  - `website-to-booksource.SKILL.md`（**网站写源主入口**）
   - `xiangse-booksource.SKILL.md`
 - `docs/`: 规则文档与维护记录
 
@@ -77,6 +78,38 @@ Windows PowerShell 建议：
 
 ```powershell
 $env:XBSREBUILD_BIN="D:\tools\xbsrebuild.exe"
+```
+
+## AI 根据网站写书源（推荐流程）
+
+Skill 入口：`skills/local/website-to-booksource.SKILL.md`
+
+```bash
+# 1) 抓四页样本（搜索/详情/目录/正文）
+python3 tools/scripts/pipeline_new_source.py fetch-samples \
+  --site https://www.example.com/ \
+  -o tools/verification/samples/example \
+  --keyword 都市
+
+# 2) AI 根据样本写 <name>.json 后，一键验收+打包+导入 Mac 版香色闺阁
+python3 tools/scripts/pipeline_new_source.py run \
+  -i tools/verification/<name>.json \
+  --fixtures tools/verification/samples/example \
+  --live \
+  --import-mac \
+  --report-dir tools/verification/out
+
+# 3) 查看 Mac App 书源列表
+python3 tools/scripts/mac_xiangse_app.py decode-sources
+```
+
+给 AI 的提问模板（复制即用）：
+
+```text
+请按 skills/local/website-to-booksource.SKILL.md 执行。
+site=https://www.example.com/
+task_type=new_source
+keyword=都市
 ```
 
 ## 书源转换用法

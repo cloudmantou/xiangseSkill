@@ -1,0 +1,19 @@
+{
+  "input": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/novel543_source.json",
+  "started_at": 1783298150,
+  "steps": {
+    "fixture": {
+      "report": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/novel543_source.fixture.simulate.json",
+      "verdict": "pass",
+      "pass": true
+    }
+  },
+  "schema_check": {
+    "pass": true,
+    "output": "SCHEMA_CHECK: PASS\nERROR_COUNT: 0\nWARNING_COUNT: 0\nSOURCE_COUNT: 1"
+  },
+  "xbs_path": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/novel543_source.xbs",
+  "xbs_sha256": "52334a24752e9dfadce87d35364063a3d91f3af9fe3e6c88bfda713c7e5b470d",
+  "status": "pass",
+  "delivery_notes": "公众号:好用的软件站"
+}

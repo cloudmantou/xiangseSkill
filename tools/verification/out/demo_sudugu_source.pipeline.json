@@ -1,0 +1,20 @@
+{
+  "input": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/demo_sudugu_source.json",
+  "started_at": 1783258367,
+  "steps": {
+    "live": {
+      "report": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/out/demo_sudugu_source.simulate.json",
+      "verdict": "fail",
+      "pass": false,
+      "blocked_reason": ""
+    }
+  },
+  "schema_check": {
+    "pass": true,
+    "output": "WARNINGS:\n- [速读谷-sudugu-v0305(公众号:好用的软件站)] weight 类型为 int，建议归一化为整数字符串\nSCHEMA_CHECK: PASS\nERROR_COUNT: 0\nWARNING_COUNT: 1\nSOURCE_COUNT: 1"
+  },
+  "xbs_path": "/Users/mantou/Documents/idea/xiangseSkill/tools/verification/out/demo_sudugu_source.xbs",
+  "xbs_sha256": "223f6ac747039228a8c6f92c34c6431f417c7632438705ffd527536041cbf3bd",
+  "status": "fail",
+  "delivery_notes": "公众号:好用的软件站"
+}

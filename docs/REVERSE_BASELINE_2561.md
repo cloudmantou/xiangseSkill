@@ -1,7 +1,26 @@
 # StandarReader 2.56.1 逆向基线映射（并入 xiangseSkill）
 
-更新时间：`2026-03-10`  
-适用范围：`/Users/mantou/Documents/idea/3.2/xiangseSkill` 规则与工具链（文档 + 校验器 + 转换入口）
+更新时间：`2026-07-05`  
+适用范围：`/Users/mantou/Documents/idea/xiangseSkill` 规则与工具链（文档 + 校验器 + 转换入口）
+
+## 0. 当前 IPA 样本（仓库内置）
+
+- App 包：`Tg@TrollstoreKios.app/`
+- 主二进制：`Tg@TrollstoreKios.app/Tg@TrollstoreKios`（Mach-O arm64）
+- 显示名：`香色闺阁Plus`（`CFBundleDisplayName`）
+- 内部名：`StandarReader`（`CFBundleName`）
+- 版本：`2.56.1`（`CFBundleShortVersionString` / `CFBundleVersion`）
+- Bundle ID：`com.appbox.StandarReader0.7V6RKTCVR2.T43C7793Q3`
+- 书源导入类型：`xsreader.config.xbs`（扩展名 `.xbs`），同族还有 `.xts`（排版）、`.xms`（主题）
+- 编辑器字段元数据：`Tg@TrollstoreKios.app/lpnet_modelInfo`（XBS，可用 `tools/scripts/decode_xbs.py` 解包）
+
+复现命令（本仓路径）：
+
+```bash
+plutil -p Tg@TrollstoreKios.app/Info.plist
+strings Tg@TrollstoreKios.app/Tg@TrollstoreKios | rg "actionID|parserID|requestInfo|webView"
+python3 tools/scripts/decode_xbs.py Tg@TrollstoreKios.app/lpnet_modelInfo
+```
 
 ## 1. 证据来源与分级
 
@@ -191,3 +210,74 @@
 - E08-E12：`/private/tmp/sourceModelList.from_xbs.json` 统计结论
 
 推荐直接使用 `/Users/mantou/Documents/idea/3.3/analysis/standarreader_2.56.1_reverse_summary.json` 作为机器可读证据索引。
+
+## 8. 2026-07-05 复扫增量（仓库内置 `Tg@TrollstoreKios.app`）
+
+### 8.1 新增/补全字段
+
+| 字段 | 结论 | skill 处理 |
+|---|---|---|
+| `webViewSkipUrlsUnless` | 主二进制字符串存在；为 skip 规则白名单覆盖 | 写入 WebView 基线与 workflow skill |
+| `webViewSniff` | 存在；配套 `arrWebViewSniff`、`canLoadUrl:fromSniff:` | 标注为高级选项，默认优先 HTTP/API |
+| `wkwebview_post` | WebView 内置 form POST 辅助函数 | 挑战页/登录页二次提交可用 |
+| `loginUrl` / `loginWebView` | 登录动作链路存在 | 仅登录型站点按需配置 |
+| `miniAppVersion` | 顶层可选字段（历史源常见） | 交付可不写；写了也不阻断 |
+
+### 8.2 解析类与调用链（静态符号）
+
+- `DomModelParser`
+  - `getRequestInfoForConfig:parserParams:error:`
+  - `valueForNode:config:rule:ruleKey:userInfo:removeHtml:`
+  - `valueForNode:jsonPath:`
+- `BookQueryManager`
+  - `queryByActionID:book:queryInfo:sourceName:userInfo:target:notify:cachePolicy:`
+- `LPNetWork2`
+  - `startWithUrl:requestInfo:config:userInfo:`
+  - `requestWithUrl:requestInfo:config:userInfo:`
+- `LCJSTool`
+  - `base64Encode:` / `base64Decode:`
+  - `md5Encode:` / `sha1Encode:`
+  - `dataByAesDecryptWithBase64String:withKey:withIv:`
+  - `cookieByKey:` / `searchWithXPathQuery:`
+
+### 8.3 内置模板与远程配置
+
+- 包内引用：`sourceModelList.xbs`、`xsBookSource.xbs`、`sourceModelTemplate`
+- 远程对象：`https://commonconfig.oss-accelerate.aliyuncs.com/xsreader/xsreader.2.56.0`
+  - 可下载，但不是标准 XBS 长度对齐格式；不要把它当书源模板直接解包
+
+### 8.4 skill 同步清单（本次已完成）
+
+- `skills/local/xiangse-booksource.SKILL.md`：新增「IPA 逆向基线」整节
+- `skills/global/xbs-booksource-workflow.SKILL.md`：新增 IPA 真值表 + WebView 键补全
+- `docs/REVERSE_WEBVIEW_BASELINE_2561.md`：补 `webViewSkipUrlsUnless` / `webViewSniff` / `wkwebview_post`
+- `tools/scripts/decode_xbs.py`：Go 工具不可用时的 XBS 解包回退
+
+### 8.5 动态验证执行结果（2026-07-05）
+
+执行报告：`tools/verification/VERIFICATION_RUN_2026-07-05.json`
+
+| 项目 | 结果 | 说明 |
+|---|---|---|
+| IPA 静态基线核对 | PASS | `python3 tools/scripts/verify_ipa_baseline.py` |
+| `lpnet_modelInfo` 解包 | PASS | 枚举与 skill 一致 |
+| 四步 fixture 模拟 | PASS | 样本源 `雪飞阁` + `tools/verification/fixtures/xuefeige/` |
+| 四步 live 模拟 | FAIL | 目标站 TLS/网络不可用（环境限制，非 parser 逻辑错误） |
+| Python XBS 往返 | PASS | `decode_xbs.py --encode` 生成 `xuefeige_fixed.xbs` 并可回解 |
+| Frida 动态 Hook | SKIPPED | 当前无 USB iOS 设备；脚本已就绪：`tools/scripts/frida_dommodel_trace.js` |
+
+本轮修复：
+
+- `xbs_tool.py`：`simulate-fixture --fixtures` 改为传绝对路径（修复相对路径在 validator cwd 下找不到 fixture）
+- `decode_xbs.py`：新增 `--encode`，在 macOS `go run` 因 `dyld LC_UUID` 崩溃时仍可 json2xbs
+
+复现命令：
+
+```bash
+python3 tools/scripts/verify_ipa_baseline.py
+python3 tools/scripts/xbs_tool.py simulate-fixture \
+  -i tools/verification/xuefeige_fixed.json \
+  --fixtures tools/verification/fixtures/xuefeige \
+  --report tools/verification/xuefeige_fixed.fixture.simulate.json
+python3 tools/scripts/decode_xbs.py --encode tools/verification/xuefeige_fixed.json tools/verification/xuefeige_fixed.xbs
+```

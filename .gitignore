@@ -2,3 +2,19 @@
 .cache/
 records/git/
 *.roundtrip.json
+
+# Local env / caches
+.venv/
+.gocache/
+.gomodcache/
+.gopath/
+__pycache__/
+*.pyc
+
+# Local app bundles / scratch
+SourceRead.app/
+Tg@TrollstoreKios.app/
+-o
+
+# Machine-specific verification snapshots
+tools/verification/mac_live_sourceModelList.json

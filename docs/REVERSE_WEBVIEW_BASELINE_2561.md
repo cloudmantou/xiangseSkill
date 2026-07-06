@@ -7,10 +7,11 @@
 
 ## 1. 样本与证据来源
 
-- App 包路径（用户提供）：
-  - `/Users/mantou/Documents/idea/3.3/Payload/Tg@TrollstoreKios.app`
+- App 包路径（仓库内置，2026-07-05 复扫）：
+  - `Tg@TrollstoreKios.app/`
 - 主二进制：
-  - `/Users/mantou/Documents/idea/3.3/Payload/Tg@TrollstoreKios.app/Tg@TrollstoreKios`
+  - `Tg@TrollstoreKios.app/Tg@TrollstoreKios`
+- 版本：`2.56.1`（`香色闺阁Plus` / `StandarReader`）
 - 关键静态提取命令（示例）：
   - `plutil -p Info.plist`
   - `strings Tg@TrollstoreKios | rg -n "webView|webViewJs|webViewJsDelay|webViewSkipUrls|requestInfo|parserID|responseFormatType"`
@@ -25,8 +26,12 @@
 | WV-002 | `webViewJs` | 存在，说明客户端支持 WebView 页面内 JS 注入/执行能力。 |
 | WV-003 | `webViewJsDelay` | 存在，说明注入执行前存在延迟控制语义。 |
 | WV-004 | `webViewSkipUrls` | 存在，说明导航中可按 URL 过滤/跳过子资源。 |
-| WV-005 | `requestInfo` | 与 `parserID/responseFormatType` 同时出现，符合“请求构建 -> 解析”统一动作模型。 |
-| WV-006 | `WKWebView` 相关字符串 | 存在 WebView 回调与导航上下文，WebView 非边缘功能。 |
+| WV-005 | `webViewSkipUrlsUnless` | 存在，为 `webViewSkipUrls` 的白名单覆盖规则（字符串或数组）。 |
+| WV-006 | `webViewSniff` | 存在，客户端具备 WebView 嗅探/资源探测链路（`arrWebViewSniff`、`canLoadUrl:fromSniff:`）。 |
+| WV-007 | `wkwebview_post` | 内置 JS 辅助函数，可在 WebView 内构造 form 并 `POST` 提交（`%@wkwebview_post("%@", "%@", %@)`）。 |
+| WV-008 | `requestInfo` | 与 `parserID/responseFormatType` 同时出现，符合“请求构建 -> 解析”统一动作模型。 |
+| WV-009 | `WKWebView` 相关字符串 | 存在 WebView 回调与导航上下文，WebView 非边缘功能。 |
+| WV-010 | `params.requestUrls` / `params.responseUrl` | 日志/调试字符串存在，WebView 导航会累积 `requestUrls`，`responseUrl` 取最后一次响应对应 URL。 |
 
 ---
 
@@ -43,7 +48,10 @@
    - `webView=true`：触发 WebView 路径。
    - `webViewJs`：在页面可执行后注入。
    - `webViewJsDelay`：注入前等待（秒）。
-   - `webViewSkipUrls`：导航请求 URL 过滤规则。
+   - `webViewSkipUrls`：导航请求 URL 过滤规则（黑名单）。
+   - `webViewSkipUrlsUnless`：白名单覆盖；命中时即使匹配 skip 规则也继续加载。
+   - `webViewSniff`：启用嗅探模式（仅在高可信场景使用；默认优先 API/HTTP）。
+   - `wkwebview_post(path, charset, params)`：WebView 内表单 POST 辅助，适合挑战页/登录页二次提交。
 
 3. 结构化报告新增：
    - `runtime_engine`

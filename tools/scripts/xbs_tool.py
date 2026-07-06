@@ -390,7 +390,10 @@ def _run_validator_cli(
     if source_key:
         cmd.extend(["--source-key", source_key])
     if mode == "fixture" and fixtures:
-        cmd.extend(["--fixtures", fixtures])
+        fixture_path = Path(fixtures).expanduser()
+        if not fixture_path.is_absolute():
+            fixture_path = (repo_root / fixture_path).resolve()
+        cmd.extend(["--fixtures", str(fixture_path)])
 
     completed = subprocess.run(
         cmd,

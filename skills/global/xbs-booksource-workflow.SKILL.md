@@ -5,6 +5,58 @@ description: Build, debug, and maintain 香色闺阁/香色书源 JSON and XBS f
 
 # XBS Booksource Workflow
 
+## Website → Booksource Entry
+
+When the user gives a **website URL** and wants a new/fix book source, load first:
+
+- `skills/local/website-to-booksource.SKILL.md`（七步流水线：侦察 → 规则 → schema → simulate → XBS → Mac 导入）
+
+One-command pipeline after JSON is ready:
+
+```bash
+python3 tools/scripts/pipeline_new_source.py run -i <source.json> --fixtures <samples_dir> --live --import-mac --report-dir tools/verification/out
+```
+
+## IPA Reverse Baseline (StandarReader 2.56.1)
+
+Ground truth comes from the bundled app package in this repo:
+
+- Bundle: `Tg@TrollstoreKios.app/` (`香色闺阁Plus`, version `2.56.1`)
+- Binary: `Tg@TrollstoreKios.app/Tg@TrollstoreKios`
+- Editor field enums: `Tg@TrollstoreKios.app/lpnet_modelInfo` (XBS)
+- Evidence docs: `docs/REVERSE_BASELINE_2561.md`, `docs/REVERSE_WEBVIEW_BASELINE_2561.md`
+
+Decode bundled editor metadata when Go `xbsrebuild` is unavailable:
+
+```bash
+python3 tools/scripts/decode_xbs.py Tg@TrollstoreKios.app/lpnet_modelInfo
+```
+
+Confirmed client contract (static strings + decoded `lpnet_modelInfo`):
+
+| Area | Truth |
+|---|---|
+| Top-level shape | `{ "<alias>": { sourceName, sourceUrl, sourceType, enable, weight, ... } }` |
+| Core actions | `searchBook`, `bookDetail`, `chapterList`, `chapterContent` |
+| Required per action | `actionID`, `parserID`, `requestInfo`, `responseFormatType` |
+| `parserID` | `DOM` (TFHpple/DomModelParser) or `JS` |
+| `responseFormatType` | `""`, `base64str`, `html`, `xml`, `json`, `data` |
+| `responseDecryptType` | `""`, `encryptType1` |
+| Placeholders | `%@result`, `%@keyWord`, `%@pageIndex`, `%@offset`, `%@filter` |
+| `@js` context | `config`, `params`, `result` (never `java.getParams()`) |
+| `requestInfo` object keys | `url`, `POST`, `httpParams`, `httpHeaders`, `forbidCookie`, `forbidCache`, `cacheTime`, `webView*` |
+| WebView keys | `webView`, `webViewJs`, `webViewJsDelay`, `webViewSkipUrls`, `webViewSkipUrlsUnless`, `webViewSniff` |
+| WebView helper | built-in `wkwebview_post(path, charset, params)` for form POST inside WKWebView |
+| List child XPath | prefer `//...`; avoid `./` and `.//` under `list` |
+| Import crash guards | `weight` as string; `bookWorld` as category map (no `categories` array) |
+
+Routing classes (for debugging mindset, not for writing ObjC):
+
+- `BookQueryManager.queryByActionID:...` — action dispatch
+- `DomModelParser.getRequestInfoForConfig:parserParams:error:` — request build
+- `DomModelParser.valueForNode:config:rule:ruleKey:userInfo:removeHtml:` — field parse
+- `LPNetWork2.startWithUrl:requestInfo:config:userInfo:` — HTTP/WebView fetch
+
 ## Overview
 
 Implement or fix text book sources for 香色闺阁（StandarReader 2.56.1 only）with a deterministic workflow: analyze target pages, generate rule JSON, convert to XBS, and validate with real HTML samples.
@@ -89,6 +141,26 @@ Prefer:
 - For paged `chapterContent`, set `maxPage` in both:
   - `chapterContent.validConfig`
   - `chapterContent.moreKeys`
+- WebView request keys (from IPA static baseline):
+  - `webView`, `webViewJs`, `webViewJsDelay`
+  - `webViewSkipUrls` (blocklist), `webViewSkipUrlsUnless` (allowlist override)
+  - `webViewSniff` only when sniffing is truly required; prefer API/HTTP first
+  - `wkwebview_post(path, charset, params)` for challenge/login form POST inside WebView
+
+实战补充（2026-07，cuoceng / 错层小说网）:
+
+- **App 真值**：`Tg@TrollstoreKios.app`（StandarReader 2.56.1）；`SourceRead.app` 是 Legado，不能验 XBS。
+- **同名书源叠版**是「simulate PASS、App 无目录」首要根因：多个 alias 共用 `sourceName` 且都 `enable=1` 时，`queryCatalogByBook:sourceName:` 会命中旧规则。导入后必须 `mac_xiangse_app.py prune-sources --remove-prefix "<prefix>-"`，沙盒只留最新 alias。
+- **导入是合并**：`open -a 香色闺阁 file.xbs` 不删旧版；App 运行中导入可能覆盖 prune 结果。先 quit App 再写沙盒。
+- **TFHpple vs JSDOM**：`list=//dd/a` + `//text()` + `//@href` 在 App 正确，在 fixture 校验器 `sample_item` 可能是全页垃圾；信 `list_length` + 真机，不信 `sample_item.title/url`。
+- **目录字段**：二进制无 `chapterListUrl`；目录 URL 只能在 `chapterList.requestInfo` 从 `queryInfo.url/detailUrl` 归一化（如 `/book/{id}.html` → `/book/chapter/{id}.html`）。
+- **requestInfo 反模式**：禁 `Object.assign({}, config.httpHeaders)`；禁虚构 `chapterListUrl`；优先 `return {url, httpHeaders: config.httpHeaders}`。
+- **搜索降级**：Cloudflare 拦站内搜 → 分类页 + `requestFilters.category` + 关键词过滤。
+- **可用模板（v0713）**：
+  - `chapterList.list`: `//div[@id='allchapter']//dd/a`
+  - `chapterList.title/url/detailUrl`: `//text()` / `//@href` / `//@href`
+  - `searchBook.url` 与 `detailUrl` 同写
+- 参考：`tools/verification/cuoceng_source.json`
 
 实战补充（2026-03，deqixs）:
 
@@ -270,7 +342,12 @@ Validate selectors against saved HTML (e.g., `xmllint --html --xpath ...`).
   - prefer `var` + `function`
   - avoid `new URL()`, optional chaining, nullish coalescing
 
-See detailed pitfalls: [references/xiangse-parser-pitfalls.md](references/xiangse-parser-pitfalls.md).
+See detailed pitfalls and IPA evidence:
+
+- `docs/XBS_JSON_CODING_RULES.md`
+- `docs/REVERSE_BASELINE_2561.md`
+- `docs/REVERSE_WEBVIEW_BASELINE_2561.md`
+- bundled sample: `Tg@TrollstoreKios.app/`
 
 ## Step 4: Convert Between JSON and XBS
 

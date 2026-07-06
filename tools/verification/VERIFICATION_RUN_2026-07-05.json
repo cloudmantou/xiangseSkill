@@ -1,0 +1,47 @@
+{
+  "date": "2026-07-05",
+  "app_sample": "Tg@TrollstoreKios.app",
+  "app_version": "2.56.1",
+  "checks": {
+    "ipa_baseline_verify": {
+      "status": "PASS",
+      "report": "tools/verification/ipa_baseline_report.json"
+    },
+    "lpnet_modelInfo_decode": {
+      "status": "PASS",
+      "command": "python3 tools/scripts/decode_xbs.py Tg@TrollstoreKios.app/lpnet_modelInfo"
+    },
+    "fixture_simulate_4step": {
+      "status": "PASS",
+      "source": "tools/verification/xuefeige_fixed.json",
+      "fixtures": "tools/verification/fixtures/xuefeige",
+      "report": "tools/verification/xuefeige_fixed.fixture.simulate.json",
+      "steps": {
+        "searchBook": "pass",
+        "bookDetail": "pass",
+        "chapterList": "pass",
+        "chapterContent": "pass"
+      }
+    },
+    "live_simulate_4step": {
+      "status": "FAIL",
+      "reason": "target site TLS/network unavailable from current environment",
+      "report": "tools/verification/xuefeige_fixed.simulate.json"
+    },
+    "xbs_roundtrip_python": {
+      "status": "PASS",
+      "input": "tools/verification/xuefeige_fixed.json",
+      "output": "tools/verification/xuefeige_fixed.xbs",
+      "command": "python3 tools/scripts/decode_xbs.py --encode <json> <xbs>"
+    },
+    "frida_dynamic_hook": {
+      "status": "SKIPPED",
+      "reason": "no USB iOS device detected (frida-ps -Uai empty)",
+      "script": "tools/scripts/frida_dommodel_trace.js"
+    }
+  },
+  "fixes_during_run": [
+    "xbs_tool.py simulate-fixture now resolves --fixtures to absolute path",
+    "decode_xbs.py added --encode for Python json2xbs roundtrip when go runner fails"
+  ]
+}
