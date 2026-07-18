@@ -5,7 +5,9 @@
   "type": "module",
   "description": "Standalone Xiangse (StandarReader 2.56.1) simulation validator",
   "scripts": {
-    "run": "node src/cli.js"
+    "run": "node src/cli.js",
+    "test": "node --test",
+    "coverage": "node --test --experimental-test-coverage --test-coverage-include='src/**/*.js' --test-coverage-lines=80"
   },
   "dependencies": {
     "axios": "^1.11.0",

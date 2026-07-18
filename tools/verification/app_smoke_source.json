@@ -1,0 +1,51 @@
+{
+  "Codex-App-Smoke-2561": {
+    "sourceName": "Codex App 2.56.1 兼容烟测（默认禁用）",
+    "sourceUrl": "https://books.toscrape.com",
+    "sourceType": "text",
+    "enable": 0,
+    "weight": "99999",
+    "searchBook": {
+      "actionID": "searchBook",
+      "parserID": "DOM",
+      "responseFormatType": "html",
+      "host": "https://books.toscrape.com",
+      "requestInfo": "https://books.toscrape.com/",
+      "list": "//article[contains(@class,'product_pod')]",
+      "bookName": "//h3/a/@title",
+      "detailUrl": "//h3/a/@href",
+      "cover": "//img/@src"
+    },
+    "bookDetail": {
+      "actionID": "bookDetail",
+      "parserID": "DOM",
+      "responseFormatType": "html",
+      "host": "https://books.toscrape.com",
+      "requestInfo": "%@result",
+      "title": "//div[contains(@class,'product_main')]/h1/text()",
+      "author": "@js:return 'Books to Scrape';",
+      "desc": "//div[@id='product_description']/following-sibling::p[1]/text()",
+      "cover": "//div[contains(@class,'item') and contains(@class,'active')]/img/@src",
+      "chapterListUrl": "@js:return params.responseUrl;"
+    },
+    "chapterList": {
+      "actionID": "chapterList",
+      "parserID": "DOM",
+      "responseFormatType": "html",
+      "host": "https://books.toscrape.com",
+      "requestInfo": "%@result",
+      "list": "//div[contains(@class,'product_main')]",
+      "title": "//h1/text()",
+      "url": "@js:return params.responseUrl;"
+    },
+    "chapterContent": {
+      "actionID": "chapterContent",
+      "parserID": "DOM",
+      "responseFormatType": "html",
+      "host": "https://books.toscrape.com",
+      "requestInfo": "%@result",
+      "title": "//div[contains(@class,'product_main')]/h1/text()",
+      "content": "//article[contains(@class,'product_page')]"
+    }
+  }
+}

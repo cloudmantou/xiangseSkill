@@ -1,0 +1,55 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: tools/validator/package-lock.json
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22.12"
+          cache-dependency-path: tools/vendor/xbsrebuild/go.sum
+
+      - name: Install validator dependencies
+        working-directory: tools/validator
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Python regression tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Validator tests and coverage
+        working-directory: tools/validator
+        run: npm run coverage
+
+      - name: Go module and tests
+        working-directory: tools/vendor/xbsrebuild
+        run: |
+          go mod verify
+          go test -mod=readonly ./...
+          go vet -mod=readonly ./...
+
+      - name: Static syntax checks
+        run: |
+          python -m py_compile tools/scripts/*.py
+          node --check tools/validator/src/cli.js

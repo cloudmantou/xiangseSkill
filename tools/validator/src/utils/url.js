@@ -8,16 +8,10 @@ export function resolveWithHost(host, input) {
     return "";
   }
   if (isAbsoluteUrl(cleaned)) {
-    return cleaned;
+    return new URL(cleaned).toString();
   }
 
-  const base = String(host || "").endsWith("/") ? String(host) : `${String(host || "")}/`;
-
-  if (cleaned.startsWith("//")) {
-    return `https:${cleaned}`;
-  }
-
-  return new URL(cleaned.startsWith("/") ? cleaned.slice(1) : cleaned, base).toString();
+  return new URL(cleaned, String(host || "").trim()).toString();
 }
 
 export function canResolveAgainstHost(host, maybeRelative) {

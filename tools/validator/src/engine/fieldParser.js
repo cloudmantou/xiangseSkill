@@ -1,4 +1,4 @@
-import { isJsRule, unwrapJsRule } from "./template.js";
+import { isJsRule, splitJsPipe, unwrapJsRule } from "./template.js";
 import { runUserJs } from "./jsSandbox.js";
 import { evaluateValue } from "./xpath.js";
 
@@ -13,12 +13,12 @@ export async function parseFieldValue(input) {
     return runUserJs(unwrapJsRule(raw), context);
   }
 
-  const pipeIndex = raw.indexOf("||@js:");
-  if (pipeIndex >= 0) {
-    const xpathExpr = raw.slice(0, pipeIndex).trim();
-    const jsExpr = raw.slice(pipeIndex + "||@js:".length);
-    const baseValue = xpathExpr ? evaluateValue(document, xpathExpr, contextNode) : context.result;
-    return runUserJs(jsExpr, { ...context, result: baseValue });
+  const pipe = splitJsPipe(raw);
+  if (pipe) {
+    const baseValue = pipe.baseExpression
+      ? evaluateValue(document, pipe.baseExpression, contextNode)
+      : context.result;
+    return runUserJs(pipe.jsCode, { ...context, result: baseValue });
   }
 
   return evaluateValue(document, raw, contextNode);

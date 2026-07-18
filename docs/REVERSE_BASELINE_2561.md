@@ -1,9 +1,11 @@
-# StandarReader 2.56.1 逆向基线映射（并入 xiangseSkill）
+# StandarReader 2.56.1 修改样本静态逆向基线
 
 更新时间：`2026-07-05`  
-适用范围：`/Users/mantou/Documents/idea/xiangseSkill` 规则与工具链（文档 + 校验器 + 转换入口）
+适用范围：`/Users/mantou/Documents/idea/xiangseSkill` 的静态兼容性参考；不作为官方 App 运行证明
 
-## 0. 当前 IPA 样本（仓库内置）
+## 0. 仓内修改样本（非官方运行验收件）
+
+`Tg@TrollstoreKios.app` 含注入/修改组件。以下结论只能证明该样本中存在相应字符串、符号或资源，不能外推为官方未修改 App 的内置能力，也不能替代 live 网络链或官方 App 导入/运行/编辑保存验证。
 
 - App 包：`Tg@TrollstoreKios.app/`
 - 主二进制：`Tg@TrollstoreKios.app/Tg@TrollstoreKios`（Mach-O arm64）
@@ -34,13 +36,13 @@ python3 tools/scripts/decode_xbs.py Tg@TrollstoreKios.app/lpnet_modelInfo
 
 证据分级：
 
-- `已实锤`：可由二进制符号、字符串或可解析配置直接复现。
+- `样本静态确认`：可由这个修改样本的二进制符号、字符串或可解析配置直接复现；不代表官方 App 运行时确认。
 - `高可信推断`：多处证据一致，但无单点强制约束证明。
 - `待动态验证`：静态层无法确定运行时是否强制执行。
 
 ## 2. SDK / 内置 Tools 清单（并入后基线）
 
-### 2.1 系统链接库（已实锤）
+### 2.1 系统链接库（修改样本静态确认）
 
 关键依赖（节选）：
 
@@ -49,7 +51,7 @@ python3 tools/scripts/decode_xbs.py Tg@TrollstoreKios.app/lpnet_modelInfo
 - `libsqlite3/libxml2/libz/libiconv`
 - 注入链相关：`MikeCrack.dylib`、`Tg@TrollstoreKios.dylib`、`Tg@TrollstoreMios.dylib`、`SideloadMikepass1.dylib`、`SideloadMikepass2.dylib`
 
-### 2.2 Pods 组件（已实锤）
+### 2.2 Pods 组件（修改样本静态确认）
 
 - `AFNetworking`
 - `FMDB`
@@ -69,11 +71,11 @@ python3 tools/scripts/decode_xbs.py Tg@TrollstoreKios.app/lpnet_modelInfo
 - `BookQueryManager`：动作路由（search/detail/chapter/content）与结果回传。
 - `BookSourceManager`：多源并发调度、失败/空结果管理、搜索生命周期控制。
 
-结论：`xiangseSkill` 的动作骨架和字段模型（`actionID/parserID/requestInfo/responseFormatType/moreKeys`）与 2.56.1 主链路一致（`已实锤 + 高可信推断`）。
+结论：`xiangseSkill` 的动作骨架和字段模型（`actionID/parserID/requestInfo/responseFormatType/moreKeys`）与该修改样本的静态链路一致；官方 App 仍需单独运行验证。
 
 ## 3. 规则引擎真值表（lpnet_modelInfo 基线）
 
-`lpnet_modelInfo` 可配置键（已实锤）：
+`lpnet_modelInfo` 可配置键（修改样本静态确认）：
 
 - `actionID`
 - `moreKeys`
@@ -88,7 +90,7 @@ python3 tools/scripts/decode_xbs.py Tg@TrollstoreKios.app/lpnet_modelInfo
 - `testConfig`
 - `testRegex`
 
-### 3.1 responseFormatType（已实锤）
+### 3.1 responseFormatType（修改样本静态确认）
 
 - `""`（普通字符串）
 - `base64str`
@@ -97,17 +99,17 @@ python3 tools/scripts/decode_xbs.py Tg@TrollstoreKios.app/lpnet_modelInfo
 - `json`
 - `data`
 
-### 3.2 responseDecryptType（已实锤）
+### 3.2 responseDecryptType（修改样本静态确认）
 
 - `""`（无需解密）
 - `encryptType1`
 
-### 3.3 其他编码枚举（已实锤）
+### 3.3 其他编码枚举（修改样本静态确认）
 
 - `requestParamsEncode`：`""(utf-8)`、`2147485234(gbk)`
 - `responseEncode`：`""(utf-8)`、`2147485232(gb2312)`、`2147485234(gbk)`
 
-### 3.4 占位符（已实锤）
+### 3.4 占位符（修改样本静态确认）
 
 - `%@result`
 - `%@keyWord`
@@ -125,35 +127,37 @@ python3 tools/scripts/decode_xbs.py Tg@TrollstoreKios.app/lpnet_modelInfo
 
 ## 4. 加解密能力边界
 
-### 4.1 原生层（已实锤）
+### 4.1 修改样本原生层（静态确认）
 
 - CommonCrypto：`_CCCrypt/_CCCryptorCreate/_CCCryptorUpdate`
 - 摘要：`_CC_MD5/_CC_SHA1`
 - `LCJSTool dataByAesDecryptWithBase64String:withKey:withIv:`
 - `LCJSTool base64Encode:/base64Decode:`
 
-### 4.2 JS 层（已实锤）
+### 4.2 修改样本资源层（不得外推为官方规则运行时）
 
 - `crypto.min.js` 存在
-- `CryptoJS` 能力覆盖：`AES/DES/TripleDES/RC4/Rabbit/MD5/SHA1/SHA256`
+- 该文件中可识别 `AES/DES/TripleDES/RC4/Rabbit/MD5/SHA1/SHA256` 实现
+- 文件存在不证明官方 App 包含该资源，也不证明书源 `@js`/JSParser 上下文自动暴露 `CryptoJS` 或 `atob`
+- 新书源不得把 CryptoJS 当作官方内置能力；只有目标官方 App 的实际运行验证才能建立站点专项依赖
 
-### 4.3 规则引擎可配置解密入口（已实锤）
+### 4.3 修改样本元数据中的可配置入口（静态确认）
 
 - 当前仅见：`responseDecryptType=encryptType1`
 
 结论：
 
-- 原生层可稳定覆盖常见 AES/MD5/SHA1/Base64。
-- 更复杂站点解密通常走 `requestInfo` / 字段 `||@js` / `encryptType1` 协同（高可信推断）。
+- 修改样本存在 AES/MD5/SHA1/Base64 相关符号，但不能据此承诺官方规则上下文可直接调用。
+- 更复杂解密只有在 live 与官方 App 都得到非空明文后才能判定通过；否则为 `blocked/fail`。
 
 ## 5. Hook / 注入链与可疑点
 
-### 5.1 注入链（已实锤）
+### 5.1 修改样本注入链（静态确认）
 
 - 主程序直链：`MikeCrack.dylib`、`Tg@TrollstoreKios.dylib`、`Tg@TrollstoreMios.dylib`、`SideloadMikepass1/2.dylib`
 - 相关依赖：`libsubstrate.dylib`、`libsubstitute.dylib`
 
-### 5.2 可疑 Hook 点（已实锤）
+### 5.2 可疑 Hook 点（修改样本静态确认）
 
 - `_MSHookClassPair`
 - `_MSHookFunction`
@@ -163,7 +167,7 @@ python3 tools/scripts/decode_xbs.py Tg@TrollstoreKios.app/lpnet_modelInfo
 - `_substitute_dlopen_in_pid`
 - `sandbox_check`
 
-### 5.3 可疑 URL（已实锤）
+### 5.3 可疑 URL（修改样本静态确认）
 
 - `https://commonconfig.oss-accelerate.aliyuncs.com/xsreader/xsreader.2.56.0`
 - `https://www.baidu.com/s?word=%@`
@@ -184,7 +188,7 @@ python3 tools/scripts/decode_xbs.py Tg@TrollstoreKios.app/lpnet_modelInfo
 | C02 | `bookWorld` 使用分类 map（非数组） | 确认 | 保持硬约束 | E12 |
 | C03 | `weight` 必须字符串 | 需放宽 | 改为归一化建议 + 警告 | E09 |
 | C04 | `enable` 必须整型 1/0 | 需放宽 | 改为归一化建议 + 警告 | E09 |
-| C05 | `responseFormatType` 仅 html/json/xml/text | 需补充 | 补齐 `""/base64str/data` | E05,E10 |
+| C05 | 旧主张包含非法值 `text` | 已纠正 | 合法值为 `""/base64str/html/xml/json/data` | E05,E10 |
 | C06 | `responseDecryptType` 支持 `encryptType1` | 确认 | 加入枚举白名单 | E05,E04 |
 | C07 | 禁止 `method:/data:/headers:/java.getParams()` | 需分级 | `java.getParams` 仍错误；其余默认警告，可 strict 升级为错误 | E12 |
 | C08 | 支持 `%@result/%@keyWord/%@pageIndex/%@offset/%@filter` | 确认 | 在规范文档明确保留 | E04 |
@@ -211,7 +215,7 @@ python3 tools/scripts/decode_xbs.py Tg@TrollstoreKios.app/lpnet_modelInfo
 
 推荐直接使用 `/Users/mantou/Documents/idea/3.3/analysis/standarreader_2.56.1_reverse_summary.json` 作为机器可读证据索引。
 
-## 8. 2026-07-05 复扫增量（仓库内置 `Tg@TrollstoreKios.app`）
+## 8. 2026-07-05 复扫增量（仓内修改样本 `Tg@TrollstoreKios.app`）
 
 ### 8.1 新增/补全字段
 
@@ -261,10 +265,12 @@ python3 tools/scripts/decode_xbs.py Tg@TrollstoreKios.app/lpnet_modelInfo
 |---|---|---|
 | IPA 静态基线核对 | PASS | `python3 tools/scripts/verify_ipa_baseline.py` |
 | `lpnet_modelInfo` 解包 | PASS | 枚举与 skill 一致 |
-| 四步 fixture 模拟 | PASS | 样本源 `雪飞阁` + `tools/verification/fixtures/xuefeige/` |
+| 四步 fixture 模拟 | PARSER PASS | 样本源 `雪飞阁` + `tools/verification/fixtures/xuefeige/`；仅解析单测，不证明 URL 导航或 App 运行 |
 | 四步 live 模拟 | FAIL | 目标站 TLS/网络不可用（环境限制，非 parser 逻辑错误） |
 | Python XBS 往返 | PASS | `decode_xbs.py --encode` 生成 `xuefeige_fixed.xbs` 并可回解 |
 | Frida 动态 Hook | SKIPPED | 当前无 USB iOS 设备；脚本已就绪：`tools/scripts/frida_dommodel_trace.js` |
+
+本报告没有完成来源明确、未修改的官方 StandarReader 2.56.1 App 验收，因此不得用于输出最终 `pass`。
 
 本轮修复：
 

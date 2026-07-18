@@ -5,6 +5,7 @@ import { performHttpRequest } from "../services/httpService.js";
 import { performWebViewRequest } from "../services/webviewService.js";
 import { getFixtureContent } from "../services/fixtureService.js";
 import { runUserJs } from "./jsSandbox.js";
+import { splitJsPipe } from "./template.js";
 
 const RESERVED_KEYS = new Set([
   "actionID",
@@ -21,6 +22,7 @@ const RESERVED_KEYS = new Set([
   "responseJavascript",
   "requestFunction",
   "responseFunction",
+  "nextPageUrl",
   "webView",
   "webViewJs",
   "webViewJsDelay",
@@ -71,12 +73,10 @@ async function parseJsonField(expression, item, context) {
     return runUserJs(raw.replace(/^@js:\s*/, ""), { ...context, result: item });
   }
 
-  const pipeIndex = raw.indexOf("||@js:");
-  if (pipeIndex >= 0) {
-    const basePath = raw.slice(0, pipeIndex).trim();
-    const jsCode = raw.slice(pipeIndex + "||@js:".length);
-    const base = jsonPathGet(item, basePath);
-    return runUserJs(jsCode, { ...context, result: base });
+  const pipe = splitJsPipe(raw);
+  if (pipe) {
+    const base = jsonPathGet(item, pipe.baseExpression);
+    return runUserJs(pipe.jsCode, { ...context, result: base });
   }
 
   return jsonPathGet(item, raw);
@@ -112,6 +112,61 @@ function collectWebViewAppliedKeys(action, request) {
   return WEBVIEW_KEYS.filter((k) => hasNonEmpty(action?.[k]) || hasNonEmpty(request?.[k]));
 }
 
+function canonicalFixtureUrl(value) {
+  try {
+    const url = new URL(String(value || "").trim());
+    url.hash = "";
+    return url.href;
+  } catch {
+    return "";
+  }
+}
+
+function unsupportedDiagnostic(step, capability) {
+  return {
+    step,
+    field: "unsupported",
+    level: "error",
+    message: `Unsupported Xiangse capability: ${capability}`
+  };
+}
+
+function collectUnsupportedDiagnostics(step, action, request) {
+  const capabilities = [];
+  const parserID = String(action?.parserID || "DOM").trim().toUpperCase();
+  const responseType = String(action?.responseFormatType || "html").trim().toLowerCase();
+
+  if (parserID !== "DOM") {
+    capabilities.push(`parserID=${parserID || "empty"}`);
+  }
+  if (!["html", "json"].includes(responseType)) {
+    capabilities.push(`responseFormatType=${responseType || "empty"}`);
+  }
+  if (hasNonEmpty(action?.nextPageUrl) || Number(action?.moreKeys?.maxPage || 0) > 1) {
+    capabilities.push("pagination");
+  }
+  if (hasNonEmpty(action?.webViewSniff) || hasNonEmpty(request?.webViewSniff)) {
+    capabilities.push("webViewSniff");
+  }
+  if (hasNonEmpty(action?.webViewContentRules) || hasNonEmpty(request?.webViewContentRules)) {
+    capabilities.push("webViewContentRules");
+  }
+
+  for (const key of [
+    "JSParser",
+    "requestJavascript",
+    "responseJavascript",
+    "requestFunction",
+    "responseFunction"
+  ]) {
+    if (hasNonEmpty(action?.[key])) {
+      capabilities.push(key);
+    }
+  }
+
+  return [...new Set(capabilities)].map((capability) => unsupportedDiagnostic(step, capability));
+}
+
 export async function executeStep(input) {
   const startedAt = Date.now();
   const sourceEntry = input.source[input.sourceKey];
@@ -132,14 +187,17 @@ export async function executeStep(input) {
     params: input.queryPayload,
     result: input.queryPayload?.result
   });
+  issues.push(...collectUnsupportedDiagnostics(input.step, action, request));
 
   let body = "";
   let responseUrl = request.url;
   let fixtureUsed;
+  let fixtureExpectedUrl = "";
+  let fixtureUrlVerified = false;
   let status = 200;
   let blockedReason = "";
   let webviewTrace = [];
-  const runtimeEngine = resolveRuntimeEngine(input, action, request);
+  let runtimeEngine = resolveRuntimeEngine(input, action, request);
   const webviewAppliedKeys = collectWebViewAppliedKeys(action, request);
 
   if (input.mode === "fixture") {
@@ -156,6 +214,27 @@ export async function executeStep(input) {
     } else {
       body = fixture.content;
       fixtureUsed = fixture.used;
+      fixtureExpectedUrl = String(fixture.expectedUrl || "").trim();
+      if (fixtureExpectedUrl) {
+        const expectedUrl = canonicalFixtureUrl(fixtureExpectedUrl);
+        const actualUrl = canonicalFixtureUrl(request.url);
+        fixtureUrlVerified = Boolean(expectedUrl && actualUrl && expectedUrl === actualUrl);
+        if (!fixtureUrlVerified) {
+          issues.push({
+            step: input.step,
+            field: "fixture_url",
+            level: "error",
+            message: `Fixture manifest URL does not match request URL: expected ${fixtureExpectedUrl}, actual ${request.url}`
+          });
+        }
+      } else {
+        issues.push({
+          step: input.step,
+          field: "fixture_url",
+          level: "warning",
+          message: "url_unverified: fixture has no manifest URL metadata"
+        });
+      }
       if (runtimeEngine === "webview") {
         webviewTrace.push({
           type: "fixture_replay",
@@ -165,7 +244,8 @@ export async function executeStep(input) {
     }
   } else {
     if (runtimeEngine === "webview") {
-      const webviewResult = await performWebViewRequest(request, {
+      const webviewRequest = input.performWebViewRequest || performWebViewRequest;
+      const webviewResult = await webviewRequest(request, {
         webViewTimeoutMs: input.webViewTimeoutMs
       });
       body = webviewResult.body;
@@ -173,6 +253,18 @@ export async function executeStep(input) {
       status = webviewResult.status;
       blockedReason = webviewResult.blockedReason || "";
       webviewTrace = webviewResult.trace || [];
+      runtimeEngine = webviewResult.runtimeEngine || runtimeEngine;
+      if (runtimeEngine === "webview:fallback") {
+        blockedReason =
+          blockedReason ||
+          "WebView runtime unavailable; HTTP + JSDOM fallback is incomplete evidence";
+        issues.push({
+          step: input.step,
+          field: "webview",
+          level: "error",
+          message: "WebView fallback cannot satisfy live validation"
+        });
+      }
     } else {
       const httpResult = await performHttpRequest(request);
       body = httpResult.body;
@@ -184,7 +276,7 @@ export async function executeStep(input) {
       issues.push({
         step: input.step,
         field: "http",
-        level: "warning",
+        level: "error",
         message: `HTTP status ${status}`
       });
     }
@@ -300,7 +392,7 @@ export async function executeStep(input) {
   const elapsedMs = Date.now() - startedAt;
   return {
     step: input.step,
-    success: true,
+    success: !issues.some((issue) => issue.level === "error"),
     blocked: Boolean(blockedReason),
     blockedReason,
     requestDebug: {
@@ -309,6 +401,8 @@ export async function executeStep(input) {
       mode: input.mode,
       runtimeEngine,
       fixtureUsed,
+      fixtureExpectedUrl,
+      fixtureUrlVerified,
       status,
       blocked: Boolean(blockedReason),
       blockedReason,

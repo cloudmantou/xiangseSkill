@@ -1,0 +1,4 @@
+interface:
+  display_name: "XBS Booksource Workflow"
+  short_description: "Build and verify Xiangse 2.56.1 book sources"
+  default_prompt: "Use $xbs-booksource-workflow to build and verify an import-ready Xiangse 2.56.1 book source."

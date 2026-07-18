@@ -11,6 +11,9 @@ import time
 from pathlib import Path
 from urllib.parse import quote
 
+import check_xiangse_schema as schema_checker
+from editor_compat import check_editor_risks
+
 REPO = Path(__file__).resolve().parents[2]
 SCHEMA = REPO / "tools/scripts/check_xiangse_schema.py"
 XBS_TOOL = REPO / "tools/scripts/xbs_tool.py"
@@ -41,6 +44,30 @@ def schema_check(path: Path) -> tuple[bool, str]:
     out = (cp.stdout or "") + (cp.stderr or "")
     ok = "SCHEMA_CHECK: PASS" in out
     return ok, out.strip()
+
+
+def editor_check(path: Path) -> tuple[bool, str]:
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        return False, f"EDITOR_COMPAT_CHECK: FAIL\n- invalid JSON: {exc}"
+
+    sources = schema_checker._iter_sources(doc)
+    if not sources:
+        return False, "EDITOR_COMPAT_CHECK: FAIL\n- no wrapped source objects found"
+
+    risks: list[tuple[str, object]] = []
+    for alias, source in sources:
+        risks.extend((alias, risk) for risk in check_editor_risks(source, mode="new"))
+
+    high_risks = [(alias, risk) for alias, risk in risks if risk.level == "high"]
+    status = "FAIL" if high_risks else ("WARN" if risks else "PASS")
+    lines = [f"EDITOR_COMPAT_CHECK: {status}"]
+    lines.extend(
+        f"- [{risk.level.upper()}] {alias}.{risk.path}: {risk.code}: {risk.message}"
+        for alias, risk in risks
+    )
+    return not high_risks, "\n".join(lines)
 
 
 def encode_xbs(json_path: Path, xbs_path: Path) -> None:
@@ -93,6 +120,19 @@ def simulate(path: Path, *, mode: str, fixtures: str, keyword: str, report: Path
 
 
 def cmd_fetch_samples(args: argparse.Namespace) -> int:
+    missing = [
+        flag
+        for flag, value in (
+            ("--detail-url", args.detail_url),
+            ("--list-url", args.list_url),
+            ("--content-url", args.content_url),
+        )
+        if not str(value or "").strip()
+    ]
+    if missing:
+        print(f"ERROR: explicit downstream sample URLs are required: {', '.join(missing)}", file=sys.stderr)
+        return 2
+
     out_dir = Path(args.output).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
     site = str(args.site).rstrip("/") + "/"
@@ -100,9 +140,9 @@ def cmd_fetch_samples(args: argparse.Namespace) -> int:
     mapping = {
         "searchBook": args.search_url
         or f"{site}modules/article/search.php?searchkey={quote(keyword)}",
-        "bookDetail": args.detail_url or site,
-        "chapterList": args.list_url or site,
-        "chapterContent": args.content_url or site,
+        "bookDetail": args.detail_url,
+        "chapterList": args.list_url,
+        "chapterContent": args.content_url,
     }
     results = {}
     for step, url in mapping.items():
@@ -127,6 +167,10 @@ def cmd_package(args: argparse.Namespace) -> int:
     print(out)
     if not ok:
         return 1
+    editor_ok, editor_out = editor_check(src)
+    print(editor_out)
+    if not editor_ok:
+        return 1
     encode_xbs(src, dst)
     print(f"OK_XBS: {dst}")
     print(f"SHA256: {sha256_file(dst)}")
@@ -144,14 +188,40 @@ def cmd_run(args: argparse.Namespace) -> int:
         "started_at": int(time.time()),
         "steps": {},
     }
+    pipeline_report = report_dir / f"{stem}.pipeline.json"
+
+    if args.import_mac and not args.live:
+        return _fail_run(
+            pipeline_report,
+            summary,
+            "--import-mac requires a requested and passing --live simulation",
+        )
+
+    if args.import_mac and not args.app_source_backup:
+        return _fail_run(
+            pipeline_report,
+            summary,
+            "--import-mac requires --app-source-backup",
+        )
+
+    if not args.live:
+        return _fail_run(
+            pipeline_report,
+            summary,
+            "run requires --live; use package for offline-only conversion",
+        )
 
     ok, schema_out = schema_check(src)
     summary["schema_check"] = {"pass": ok, "output": schema_out}
     print(schema_out)
     if not ok:
-        summary["status"] = "fail"
-        _write_summary(report_dir / f"{stem}.pipeline.json", summary)
-        return 1
+        return _fail_run(pipeline_report, summary, "schema check failed")
+
+    editor_ok, editor_out = editor_check(src)
+    summary["editor_check"] = {"pass": editor_ok, "output": editor_out}
+    print(editor_out)
+    if not editor_ok:
+        return _fail_run(pipeline_report, summary, "editor compatibility high risk")
 
     if args.fixtures:
         fixture_report = report_dir / f"{stem}.fixture.simulate.json"
@@ -169,6 +239,8 @@ def cmd_run(args: argparse.Namespace) -> int:
             "pass": bool(verdict.get("pass")),
         }
         print((fixture_res.get("_cli_output") or "").strip())
+        if not _simulation_passed(verdict):
+            return _fail_run(pipeline_report, summary, "fixture simulation did not pass")
 
     if args.live:
         live_report = report_dir / f"{stem}.simulate.json"
@@ -187,29 +259,58 @@ def cmd_run(args: argparse.Namespace) -> int:
             "blocked_reason": verdict.get("blocked_reason", ""),
         }
         print((live_res.get("_cli_output") or "").strip())
+        if not _simulation_passed(verdict):
+            return _fail_run(pipeline_report, summary, "live simulation did not pass")
 
     encode_xbs(src, xbs_path)
     summary["xbs_path"] = str(xbs_path)
     summary["xbs_sha256"] = sha256_file(xbs_path)
 
     if args.import_mac:
-        cp = _run([sys.executable, str(MAC_APP), "import", str(xbs_path)], check=False)
+        cp = _run(
+            [
+                sys.executable,
+                str(MAC_APP),
+                "import",
+                str(xbs_path),
+                "--backup",
+                str(Path(args.app_source_backup).expanduser().resolve()),
+            ],
+            check=False,
+        )
         summary["mac_import"] = {
-            "ok": cp.returncode == 0,
+            "handoff_requested": cp.returncode == 0,
+            "import_confirmed": False,
             "output": (cp.stdout or cp.stderr or "").strip(),
         }
         print((cp.stdout or cp.stderr or "").strip())
+        if cp.returncode != 0:
+            return _fail_run(pipeline_report, summary, "Mac import failed")
 
-    # overall pass if fixture pass when fixtures given; live optional
-    fixture_pass = summary["steps"].get("fixture", {}).get("pass", True)
-    live_pass = summary["steps"].get("live", {}).get("pass", True) if args.live else True
-    summary["status"] = "pass" if fixture_pass and live_pass else "fail"
+    summary["status"] = "pass"
     summary["delivery_notes"] = "公众号:好用的软件站"
-    _write_summary(report_dir / f"{stem}.pipeline.json", summary)
+    _write_summary(pipeline_report, summary)
     print(f"PIPELINE_STATUS: {summary['status']}")
     print(f"XBS: {xbs_path}")
     print(f"SHA256: {summary['xbs_sha256']}")
-    return 0 if summary["status"] == "pass" else 1
+    return 0
+
+
+def _simulation_passed(verdict: object) -> bool:
+    return (
+        isinstance(verdict, dict)
+        and verdict.get("status") == "pass"
+        and verdict.get("pass") is True
+    )
+
+
+def _fail_run(path: Path, summary: dict, reason: str) -> int:
+    summary["status"] = "fail"
+    summary["failure_reason"] = reason
+    _write_summary(path, summary)
+    print("PIPELINE_STATUS: fail")
+    print(f"FAILURE_REASON: {reason}")
+    return 1
 
 
 def _write_summary(path: Path, data: dict) -> None:
@@ -227,9 +328,9 @@ def build_parser() -> argparse.ArgumentParser:
     f.add_argument("--keyword", default="都市")
     f.add_argument("--timeout", type=int, default=20)
     f.add_argument("--search-url")
-    f.add_argument("--detail-url")
-    f.add_argument("--list-url")
-    f.add_argument("--content-url")
+    f.add_argument("--detail-url", required=True)
+    f.add_argument("--list-url", required=True)
+    f.add_argument("--content-url", required=True)
     f.set_defaults(func=cmd_fetch_samples)
 
     pkg = sub.add_parser("package", help="schema check + json2xbs")
@@ -243,6 +344,10 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--keyword", default="都市")
     run.add_argument("--live", action="store_true")
     run.add_argument("--import-mac", action="store_true")
+    run.add_argument(
+        "--app-source-backup",
+        help="new backup path for sourceModelList.xbs; required with --import-mac",
+    )
     run.add_argument("--report-dir")
     run.set_defaults(func=cmd_run)
     return p

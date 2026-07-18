@@ -3,10 +3,16 @@ import path from "node:path";
 
 const STEP_NAMES = ["searchBook", "bookDetail", "chapterList", "chapterContent"];
 
+function fixtureMap(value, label) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`${label} must contain a JSON object`);
+  }
+  return value;
+}
+
 function loadFixtureMapFromJson(filePath) {
   const raw = fs.readFileSync(filePath, "utf8");
-  const parsed = JSON.parse(raw);
-  return parsed && typeof parsed === "object" ? parsed : {};
+  return fixtureMap(JSON.parse(raw), `Fixtures file ${filePath}`);
 }
 
 function resolveFixtureFileFromDir(dirPath, step) {
@@ -36,9 +42,17 @@ function resolveMapEntry(map, step) {
     return { content: entry, used: "inline" };
   }
   if (typeof entry === "object") {
-    if (entry.html) return { content: String(entry.html), used: "inline" };
+    const expectedUrl = typeof entry.url === "string" ? entry.url.trim() : "";
+    const urlMetadata = expectedUrl ? { expectedUrl } : {};
+    if (entry.html) {
+      return { content: String(entry.html), used: "inline", ...urlMetadata };
+    }
     if (entry.file && fs.existsSync(entry.file) && fs.statSync(entry.file).isFile()) {
-      return { content: fs.readFileSync(entry.file, "utf8"), used: entry.file };
+      return {
+        content: fs.readFileSync(entry.file, "utf8"),
+        used: entry.file,
+        ...urlMetadata
+      };
     }
   }
   return null;
@@ -50,14 +64,14 @@ export function normalizeFixturesInput(fixturesInput) {
 
   if (raw.startsWith("{")) {
     try {
-      return { mode: "map", data: JSON.parse(raw) };
-    } catch {
-      return { mode: "none", data: {} };
+      return { mode: "map", data: fixtureMap(JSON.parse(raw), "Fixtures JSON") };
+    } catch (error) {
+      throw new Error(`Invalid fixtures JSON: ${error?.message || String(error)}`);
     }
   }
 
   if (!fs.existsSync(raw)) {
-    return { mode: "none", data: {} };
+    throw new Error(`Fixtures path not found: ${raw}`);
   }
 
   const stat = fs.statSync(raw);
@@ -70,9 +84,20 @@ export function normalizeFixturesInput(fixturesInput) {
 
   if (stat.isDirectory()) {
     const map = {};
+    const manifestPath = path.join(raw, "manifest.json");
+    const manifest = fs.existsSync(manifestPath)
+      ? loadFixtureMapFromJson(manifestPath)
+      : {};
     for (const step of STEP_NAMES) {
       const f = resolveFixtureFileFromDir(raw, step);
-      if (f) map[step] = f;
+      if (f) {
+        const manifestEntry = manifest?.[step];
+        const expectedUrl =
+          manifestEntry && typeof manifestEntry === "object"
+            ? String(manifestEntry.url || "").trim()
+            : "";
+        map[step] = { file: f, url: expectedUrl };
+      }
     }
     return { mode: "dir", data: map };
   }

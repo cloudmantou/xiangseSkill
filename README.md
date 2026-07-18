@@ -33,11 +33,11 @@
   - `json2xbs.cmd`（Windows）
   - `xbs2json.cmd`（Windows）
   - `roundtrip_check.cmd`（Windows）
-- `skills/global/`: 通用技能
-  - `xbs-booksource-workflow.SKILL.md`
-- `skills/local/`: 项目约束技能
-  - `website-to-booksource.SKILL.md`（**网站写源主入口**）
-  - `xiangse-booksource.SKILL.md`
+- `skills/xbs-booksource-workflow/`: Codex 可发现的标准 Skill（**唯一权威入口**）
+  - `SKILL.md`
+  - `agents/openai.yaml`
+  - `references/`
+- `skills/global/`、`skills/local/`: 旧路径兼容指针，不再维护第二套规则
 - `docs/`: 规则文档与维护记录
 
 ## 环境要求
@@ -82,31 +82,40 @@ $env:XBSREBUILD_BIN="D:\tools\xbsrebuild.exe"
 
 ## AI 根据网站写书源（推荐流程）
 
-Skill 入口：`skills/local/website-to-booksource.SKILL.md`
+Skill 入口：`skills/xbs-booksource-workflow/SKILL.md`
+
+验收证据必须分层：仓内 `Tg@TrollstoreKios.app` 是带修改/注入组件的静态逆向样本，只能提供字段与兼容性线索；fixture 只做解析单测；live 证明真实网络四步链；最终 `pass` 还必须在来源明确、未修改的官方 StandarReader 2.56.1 App 中完成导入、搜索、详情、目录、正文和编辑保存验证。
 
 ```bash
-# 1) 抓四页样本（搜索/详情/目录/正文）
+# 1) 先人工确认四个真实页面，再显式抓取。不要只传 --site；当前脚本不会自动发现下游链接。
 python3 tools/scripts/pipeline_new_source.py fetch-samples \
   --site https://www.example.com/ \
+  --search-url 'https://www.example.com/search?q=%E9%83%BD%E5%B8%82' \
+  --detail-url 'https://www.example.com/book/123' \
+  --list-url 'https://www.example.com/book/123/chapters' \
+  --content-url 'https://www.example.com/book/123/chapter/1' \
   -o tools/verification/samples/example \
   --keyword 都市
 
-# 2) AI 根据样本写 <name>.json 后，一键验收+打包+导入 Mac 版香色闺阁
+# 2) AI 根据样本写 <name>.json 后，运行 fail-closed 的 fixture + live + package 流水线；不要在这里自动导入。
 python3 tools/scripts/pipeline_new_source.py run \
   -i tools/verification/<name>.json \
   --fixtures tools/verification/samples/example \
   --live \
-  --import-mac \
   --report-dir tools/verification/out
 
-# 3) 查看 Mac App 书源列表
-python3 tools/scripts/mac_xiangse_app.py decode-sources
+# 3) run 只会在 live 通过后生成 out/<name>.xbs；随后再做 roundtrip，并进入官方 App 验收。
+python3 tools/scripts/xbs_tool.py roundtrip \
+  -i tools/verification/<name>.json \
+  -p tools/verification/out/<name>.verify
 ```
+
+`pipeline_new_source.py run --live` 会在 schema、编辑器兼容、fixture 或 live 门禁失败时停止，不会提前打包；每个交付文件只允许一个 alias，避免验证第一项却打包未验证书源。但它的 `PIPELINE_STATUS: pass` 仍不等于最终交付通过，因为脚本没有执行官方 App 内的搜索、详情、目录、正文和编辑器保存验收。`--import-mac` 只代表发起交付，必须同时提供新的 `--app-source-backup` 路径；工具会在 App 退出状态下先备份 `sourceModelList.xbs`，但仍不把 `open` 成功当作 App 导入或运行证据。权威顺序见标准 Skill。
 
 给 AI 的提问模板（复制即用）：
 
 ```text
-请按 skills/local/website-to-booksource.SKILL.md 执行。
+请使用 $xbs-booksource-workflow，并按 skills/xbs-booksource-workflow/SKILL.md 执行。
 site=https://www.example.com/
 task_type=new_source
 keyword=都市
@@ -117,31 +126,30 @@ keyword=都市
 ### 推荐（跨平台统一命令）
 
 ```bash
-python tools/scripts/xbs_tool.py import-fix -i <input.xbs|input.json> -o <fixed.json> --to-xbs <fixed.xbs> --report <fix_report.json>
-python tools/scripts/check_xiangse_schema.py <input.json>
-python tools/scripts/xbs_tool.py check-editor -i <input.json>
-python tools/scripts/xbs_tool.py simulate-live -i <input.xbs|input.json> --engine auto --webview-timeout 25 --keyword 都市 --book-index 0 --chapter-index 0 --report <simulate_report.json>
-python tools/scripts/xbs_tool.py simulate-fixture -i <input.xbs|input.json> --engine auto --webview-timeout 25 --fixtures <fixtures_dir_or_map> --report <simulate_fixture_report.json>
-python tools/scripts/xbs_tool.py doctor
-python tools/scripts/xbs_tool.py json2xbs -i <input.json> -o <output.xbs>
-python tools/scripts/xbs_tool.py xbs2json -i <input.xbs> -o <output.json>
-python tools/scripts/xbs_tool.py roundtrip -i <input.json> -p <output_prefix>
+python3 tools/scripts/xbs_tool.py import-fix -i <input.xbs|input.json> -o <fixed.json> --report <fix_report.json>
+python3 tools/scripts/check_xiangse_schema.py --strict-requestinfo <fixed.json>
+python3 tools/scripts/xbs_tool.py check-editor -i <fixed.json>
+python3 tools/scripts/xbs_tool.py simulate-fixture -i <fixed.json> --engine auto --webview-timeout 25 --fixtures <fixtures_dir_or_map> --report <simulate_fixture_report.json>
+python3 tools/scripts/xbs_tool.py simulate-live -i <fixed.json> --engine auto --webview-timeout 25 --keyword 都市 --book-index 0 --chapter-index 0 --report <simulate_report.json>
+python3 tools/scripts/pipeline_new_source.py package -i <fixed.json> -o <output.xbs>
+python3 tools/scripts/xbs_tool.py roundtrip -i <fixed.json> -p <output_prefix>
+python3 tools/scripts/xbs_tool.py doctor
 ```
 
 说明：
-- `import-fix` 用于旧源导入修复：自动补齐 `requestInfo/responseFormatType` 等导入硬字段并输出修复报告。
+- `import-fix` 用于旧源导入修复：先只输出 JSON 和报告，不要在校验前使用 `--to-xbs`。
 - `xbs_tool.py` 在 `json2xbs/roundtrip` 会自动执行 schema 检查并在失败时中断。
 - `simulate-live` 会自动执行：`import-fix -> schema_check -> editor_check -> 四步真实请求模拟`。
   - 四步为：`searchBook / bookDetail / chapterList / chapterContent`。
   - `--engine` 支持：`auto|http|webview`（默认 `auto`）。
   - `--webview-timeout` 控制 WebView 执行超时（秒）。
   - 命中风控会给出 `blocked`（例如 `403/challenge`），与 parser 规则失败分开标记。
-- 仅在你明确要跳过时使用：`--skip-schema-check`。
+- 交付流程禁止使用 `--skip-schema-check`。
 
 ## 真实模拟测试（导入前验收）
 
 ```bash
-python tools/scripts/xbs_tool.py simulate-live -i /abs/source.json --engine auto --webview-timeout 25 --keyword 都市 --report /abs/source.sim.report.json
+python3 tools/scripts/xbs_tool.py simulate-live -i /abs/source.json --engine auto --webview-timeout 25 --keyword 都市 --report /abs/source.sim.report.json
 ```
 
 报告核心字段：
@@ -155,9 +163,9 @@ python tools/scripts/xbs_tool.py simulate-live -i /abs/source.json --engine auto
 - `steps.*.webview_trace`
 
 判定规则：
-- `overall_verdict=pass`：结构、编辑兼容、四步模拟均通过，可进入导入阶段。
-- `simulation_verdict=blocked`：站点风控阻断（非 parser 规则错误），需处理请求策略或延后重试。
-- `simulation_verdict=fail`：规则解析链路失败，按步骤报告定位字段修复。
+- `overall_verdict.status=pass`：结构、编辑兼容、live 四步模拟均通过，才可进入打包阶段。
+- `simulation_verdict.status=blocked`：站点风控阻断（非 parser 规则错误），不得打包为交付件或标记 pass。
+- `simulation_verdict.status=fail`：规则解析链路失败，按步骤报告定位字段修复。
 
 ### macOS / Linux / Termux（兼容旧命令）
 
@@ -202,18 +210,14 @@ python .\tools\scripts\xbs_tool.py json2xbs -i .\in.json -o .\out.xbs
 
 ### 在 Codex 中触发
 
-1. 安装/放置 skill 文件（到你的 Codex skills 目录）。
+1. 将整个 `skills/xbs-booksource-workflow/` 目录复制到 Codex skills 目录，保持目标结构为 `xbs-booksource-workflow/SKILL.md`；不要只复制旧的 `*.SKILL.md` 文件。
 2. 在对话中明确点名 skill：
 
 ```text
 请使用 $xbs-booksource-workflow 为 https://example.com 写香色闺阁书源。
 ```
 
-如果需要项目内约束一起执行：
-
-```text
-请同时按 $xbs-booksource-workflow 和本仓库 local 规则实现并验证。
-```
+旧 `skills/global/*.SKILL.md` 与 `skills/local/*.SKILL.md` 仅是兼容指针，不再提供第二套约束。
 
 给普通用户的建议话术（可直接复制）：
 
@@ -231,7 +235,7 @@ python .\tools\scripts\xbs_tool.py json2xbs -i .\in.json -o .\out.xbs
 1. 先让它读取：`docs/TARE_USAGE_PLAYBOOK.md`
 2. 每次只给一个任务类型：`new_source / fix_source / convert_only`
 3. 要求它只按“固定输出 JSON”返回结果
-4. 强制先跑：`python tools/scripts/check_xiangse_schema.py <json>`
+4. 强制先跑：`python3 tools/scripts/check_xiangse_schema.py --strict-requestinfo <json>`
 
 可复制提问模板：
 
@@ -248,17 +252,20 @@ samples=（粘贴你的错误解析 JSON）
 
 ### 推荐工作流
 
-1. 先抓站点四类页面样本：搜索、详情、目录、正文。
-2. 先产出 JSON 规则，再执行 `roundtrip_check.sh`。
+1. 先确认并抓取站点四类真实页面样本：搜索、详情、目录、正文。
+2. 先产出 JSON 规则，依次通过 schema、editor、fixture 解析单测和 live 四步链，再打包及 roundtrip。
 3. 用文档规则复核：
    - `docs/XBS_JSON_CODING_RULES.md`
    - `docs/MAINTENANCE_WORKFLOW.md`
-4. 最后导出可导入的 XBS，并记录变更到 `docs/CHANGELOG.md`。
+4. 最后在来源明确的官方 App 中完成运行与编辑保存验证，再记录变更到 `docs/CHANGELOG.md`。
 
 ## 参考文档
 
-- `docs/香色书源开发指南与工作流程.md`
+- `skills/xbs-booksource-workflow/SKILL.md`
+- `skills/xbs-booksource-workflow/references/xbs-2561-contract.md`
+- `skills/xbs-booksource-workflow/references/verification-and-delivery.md`
 - `docs/XBS_JSON_CODING_RULES.md`
+- `docs/REVERSE_BASELINE_2561.md`（修改样本静态证据，不是官方 App 运行证明）
 - `docs/REVERSE_WEBVIEW_BASELINE_2561.md`
 - `docs/RETROSPECT_LOG.md`
 - `docs/TARE_USAGE_PLAYBOOK.md`

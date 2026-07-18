@@ -137,7 +137,7 @@ async function main() {
   });
 
   const output = {
-    ok: true,
+    ok: result.report.success,
     input: inputPath,
     sourceKey,
     mode,
@@ -153,6 +153,9 @@ async function main() {
   }
 
   process.stdout.write(`${outputText}\n`);
+  if (!result.report.success) {
+    process.exitCode = result.report.verdict.status === "blocked" ? 2 : 1;
+  }
 }
 
 main().catch((error) => {

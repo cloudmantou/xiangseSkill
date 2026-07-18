@@ -1,16 +1,18 @@
 # XBS JSON 编码规则（基于 `sourceModelList.json`）
 
+权威执行入口是 `skills/xbs-booksource-workflow/SKILL.md`。本文件记录 JSON 细节；仓内修改逆向样本只能提供静态兼容线索，最终交付仍需 live 四步链和来源明确、未修改的官方 StandarReader 2.56.1 App 验收。
+
 ## 1) 顶层结构
 
 - 顶层必须是对象：`{ "<sourceAlias>": { ...sourceConfig } }`
-- 每个源建议同时保留：
+- 每个文本源必须保留：
   - `sourceName`
   - `sourceUrl`
   - `enable`
   - `weight`
   - `miniAppVersion`
   - `lastModifyTime`
-  - `sourceType`（`text` / `comic` / `video` / `audio`）
+  - `sourceType`（本仓交付固定为 `text`）
 
 `lastModifyTime` 建议使用 Unix 秒级时间戳字符串（如 `"1772463417"`），避免被客户端错误解析为“很久以前”。
 
@@ -43,7 +45,7 @@
 
 背景：存在“导入可用，但编辑页点击保存闪退”的客户端问题。  
 结论：必须把“编辑保存稳定性”作为独立验收项，不可仅看抓取链路可用。
-日志指纹（已实锤）：`-[__NSCFNumber length]`，对应字段类型错配；本轮定位到 `weight(number)` 是高概率主因。
+现有崩溃日志指纹：`-[__NSCFNumber length]`，对应字段类型错配；本轮定位到 `weight(number)` 是高概率主因。
 
 导入闪退补充（2.56.1，Mac Catalyst）：
 
@@ -55,7 +57,7 @@
 强制验收：
 
 - 不改任何字段直接保存，不闪退
-- 修改 `sourceName/bookSourceName` 1 个字符后保存，不闪退
+- 修改 `sourceName` 1 个字符后保存，不闪退
 - 修改 1 个规则字段（XPath 或 `requestInfo`）后保存，不闪退
 
 建议流程：
@@ -72,9 +74,9 @@
 - `validConfig` 统一降级为空字符串
 - 优先回避高风险结构组合（通过 A/B 变体定位后再放开）
 
-## 1.2) StandarReader 2.56.1 逆向真值补丁（2026-03）
+## 1.2) StandarReader 2.56.1 修改样本静态基线（2026-03）
 
-以下枚举来自 `lpnet_modelInfo` 反编译解包结果，作为 2.56.1 优先基线：
+以下枚举来自仓内修改样本的 `lpnet_modelInfo` 解包结果，只作为静态兼容基线；官方 App 仍需运行验证：
 
 - `responseFormatType` 合法值：
   - `""`（普通字符串）
@@ -87,7 +89,7 @@
   - `""`（无需解密）
   - `encryptType1`（自定义解密1）
 
-占位符（主程序字符串已实锤）：
+占位符（修改样本主程序字符串静态确认）：
 
 - `%@result`
 - `%@keyWord`
@@ -101,25 +103,7 @@ Schema 分级策略（与脚本保持一致）：
 - 默认警告：`method:` / `data:` / `headers:`、`weight` 非字符串、`enable` 非整型
 - 严格模式：`check_xiangse_schema.py --strict-requestinfo` 会将 `method/data/headers` 升级为错误
 
-推荐最小骨架：
-
-```json
-{
-  "示例书源": {
-    "sourceName": "示例书源",
-    "sourceUrl": "https://example.com",
-    "sourceType": "text",
-    "enable": 1,
-    "weight": "9999",
-    "miniAppVersion": "1.0.0",
-    "lastModifyTime": "1772463417",
-    "searchBook": { "actionID": "searchBook", "parserID": "DOM" },
-    "bookDetail": { "actionID": "bookDetail", "parserID": "DOM" },
-    "chapterList": { "actionID": "chapterList", "parserID": "DOM" },
-    "chapterContent": { "actionID": "chapterContent", "parserID": "DOM" }
-  }
-}
-```
+推荐最小骨架见本文第 7 节。该模板必须保留 alias wrapper；四个核心动作都必须包含 `actionID/parserID/requestInfo/responseFormatType`，不得再使用只有 `actionID/parserID` 的旧骨架。
 
 ## 2) 核心动作对象
 
@@ -170,7 +154,7 @@ Schema 分级策略（与脚本保持一致）：
 
 - 发布目标建议：`weight` 为整数字符串；若输入为数字类型，先归一化
 - 发布目标建议：`enable` 为整型 `1/0`；若输入为字符串/布尔，先归一化
-- `requestFilters` 优先字符串形态（兼容优先于结构化数组）
+- `requestFilters` 必须使用字符串形态（2.56.1 交付禁止结构化数组/对象）
 - `validConfig` 优先空字符串（若非必须，不使用 JSON 字符串）
 
 ## 3) 请求构建规则（`requestInfo`）
@@ -742,9 +726,7 @@ return {
 - `pageSize`：声明单页条数，用于判断是否还有下一页
 - `maxPage`：强制最大分页（章节列表 / 章节内容分页时建议配）
 
-`requestFilters` 支持两种写法：
-
-1. 简单字符串（单筛选）
+StandarReader 2.56.1 交付只使用字符串写法：
 
 ```text
 _cat
@@ -752,19 +734,7 @@ _cat
 言情::yanqing
 ```
 
-2. 结构化数组（推荐，适合多筛选组）
-
-```json
-[
-  {
-    "key": "category",
-    "items": [
-      {"title": "玄幻", "value": "xuanhuan"},
-      {"title": "言情", "value": "yanqing"}
-    ]
-  }
-]
-```
+结构化数组/对象仅可作为历史输入；`check-editor` 会将非字符串 `requestFilters` 标为编辑保存高风险。发布前必须用 `import-fix` 或 `profile --profile editor_safe` 归一化为字符串，并重新完成官方 App 编辑保存验证。
 
 示例：
 
@@ -829,39 +799,53 @@ _cat
 
 ```json
 {
-  "sourceName": "站点名",
-  "sourceUrl": "https://example.com",
-  "sourceType": "text",
-  "enable": 1,
-  "weight": "9999",
-  "miniAppVersion": "1.0.0",
-  "lastModifyTime": "1772463417",
-  "httpHeaders": {
-    "User-Agent": "Mozilla/5.0"
-  },
-  "searchBook": {
-    "actionID": "searchBook",
-    "parserID": "DOM",
-    "host": "https://example.com",
-    "validConfig": "",
-    "responseFormatType": "html",
-    "requestInfo": "@js:\nreturn config.host + '/search?q=' + encodeURIComponent(params.keyWord);",
-    "list": "//ul[@id='result']/li",
-    "bookName": "//a/text()",
-    "detailUrl": "//a/@href",
-    "author": "//span[@class='author']/text()"
-  },
-  "bookDetail": {
-    "actionID": "bookDetail",
-    "parserID": "DOM"
-  },
-  "chapterList": {
-    "actionID": "chapterList",
-    "parserID": "DOM"
-  },
-  "chapterContent": {
-    "actionID": "chapterContent",
-    "parserID": "DOM"
+  "站点名-v1": {
+    "sourceName": "站点名-v1",
+    "sourceUrl": "https://example.com/",
+    "sourceType": "text",
+    "enable": 1,
+    "weight": "9999",
+    "miniAppVersion": "1.0.0",
+    "lastModifyTime": "1772463417",
+    "searchBook": {
+      "actionID": "searchBook",
+      "parserID": "DOM",
+      "validConfig": "",
+      "responseFormatType": "html",
+      "requestInfo": "@js:\nreturn {'url': config.host + 'search?q=' + encodeURIComponent(params.keyWord)};",
+      "list": "//ul[@id='result']/li",
+      "bookName": "//a/text()",
+      "detailUrl": "//a/@href",
+      "author": "//span[@class='author']/text()"
+    },
+    "bookDetail": {
+      "actionID": "bookDetail",
+      "parserID": "DOM",
+      "responseFormatType": "html",
+      "requestInfo": "%@result",
+      "title": "//h1/text()",
+      "cover": "//img[@class='cover']/@src",
+      "desc": "//div[@class='intro']/text()"
+    },
+    "chapterList": {
+      "actionID": "chapterList",
+      "parserID": "DOM",
+      "responseFormatType": "html",
+      "requestInfo": "%@result",
+      "list": "//div[@class='chapter-list']/a",
+      "title": "//text()",
+      "url": "//@href",
+      "detailUrl": "//@href"
+    },
+    "chapterContent": {
+      "actionID": "chapterContent",
+      "parserID": "DOM",
+      "responseFormatType": "html",
+      "requestInfo": "%@result",
+      "content": "//div[@class='content']/text()"
+    }
   }
 }
 ```
+
+该模板只保证结构合法；其中 URL 与 XPath 均为占位示例，必须以四个真实页面样本替换，并依次通过 fixture 解析单测、live 四步链和官方 App 验收。

@@ -80,6 +80,7 @@ async function executeWebviewJsFallback(body, request, trace) {
       ok: false,
       message: error?.message || String(error)
     });
+    throw error;
   }
   return {
     body: dom.serialize(),
@@ -189,26 +190,27 @@ async function performPlaywrightWebView(request, timeoutMs) {
 
     let mainResponse = null;
     if (String(request?.method || "GET").toUpperCase() === "POST") {
-      mainResponse = await page.goto("about:blank", { waitUntil: "domcontentloaded", timeout: timeoutMs });
-      await page.evaluate(
-        ({ url, params }) => {
-          const form = document.createElement("form");
-          form.setAttribute("method", "POST");
-          form.setAttribute("action", url);
-          const entries = Object.entries(params || {});
-          for (const [key, value] of entries) {
-            const input = document.createElement("input");
-            input.type = "hidden";
-            input.name = key;
-            input.value = String(value ?? "");
-            form.appendChild(input);
-          }
-          document.body.appendChild(form);
-          form.submit();
-        },
-        { url: request.url, params: request.httpParams || {} }
-      );
-      await page.waitForLoadState("domcontentloaded", { timeout: timeoutMs });
+      await page.goto("about:blank", { waitUntil: "domcontentloaded", timeout: timeoutMs });
+      [mainResponse] = await Promise.all([
+        page.waitForNavigation({ waitUntil: "domcontentloaded", timeout: timeoutMs }),
+        page.evaluate(
+          ({ url, params }) => {
+            const form = document.createElement("form");
+            form.setAttribute("method", "POST");
+            form.setAttribute("action", url);
+            for (const [key, value] of Object.entries(params || {})) {
+              const input = document.createElement("input");
+              input.type = "hidden";
+              input.name = key;
+              input.value = String(value ?? "");
+              form.appendChild(input);
+            }
+            document.body.appendChild(form);
+            form.submit();
+          },
+          { url: request.url, params: request.httpParams || {} }
+        )
+      ]);
     } else {
       mainResponse = await page.goto(request.url, {
         waitUntil: "domcontentloaded",
@@ -239,6 +241,7 @@ async function performPlaywrightWebView(request, timeoutMs) {
           ok: false,
           message: error?.message || String(error)
         });
+        throw error;
       }
     }
 
@@ -263,11 +266,25 @@ async function performPlaywrightWebView(request, timeoutMs) {
   }
 }
 
+export function isBrowserUnavailableError(error) {
+  const code = String(error?.code || "");
+  const message = String(error?.message || error || "").toLowerCase();
+  return (
+    code === "ERR_MODULE_NOT_FOUND" ||
+    message.includes("cannot find package 'playwright'") ||
+    message.includes("executable doesn't exist") ||
+    message.includes("please run the following command to download new browsers")
+  );
+}
+
 export async function performWebViewRequest(request, options = {}) {
   const timeoutMs = Number(options.webViewTimeoutMs || appConfig.webViewTimeoutMs);
   try {
     return await performPlaywrightWebView(request, timeoutMs);
   } catch (error) {
+    if (!isBrowserUnavailableError(error)) {
+      throw error;
+    }
     const fallback = await performFallbackWebView(request, timeoutMs);
     fallback.trace.push({
       type: "playwright_error",

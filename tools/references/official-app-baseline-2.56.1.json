@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "official_static": {
+    "bundle_id": "com.appbox.StandarReader",
+    "version": "2.56.1",
+    "executable": "StandarReader",
+    "executable_sha256": "88117de7da93458a14c9b294ba88aba1b16584ce1528b759591081c984755c7d",
+    "lpnet_model_info_sha256": "23693edff8f7ec48269e7b8674c4c2dbb40e31e346976450b291323752ad2035"
+  },
+  "modified_reverse": {
+    "bundle_id": "com.appbox.StandarReader0.7V6RKTCVR2.T43C7793Q3",
+    "version": "2.56.1",
+    "executable": "Tg@TrollstoreKios",
+    "executable_sha256": "b07c82a3edceb1ac5106dc4038b7845acbbf98079455103f8a4d93722cf9aedc",
+    "lpnet_model_info_sha256": "23693edff8f7ec48269e7b8674c4c2dbb40e31e346976450b291323752ad2035"
+  }
+}

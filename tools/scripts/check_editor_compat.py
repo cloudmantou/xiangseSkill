@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 from editor_compat import check_editor_risks, load_json, pick_source
+from check_xiangse_schema import _iter_sources
 
 
 def main() -> int:
@@ -26,6 +27,8 @@ def main() -> int:
     try:
         doc = load_json(path)
         _, src, mode = pick_source(doc)
+        if mode == "new" and len(_iter_sources(doc)) != 1:
+            raise ValueError("delivery JSON must contain exactly one wrapped source")
     except Exception as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2

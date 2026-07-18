@@ -25,7 +25,8 @@ var json2xbsCmd = &cobra.Command{
 		cobra.CheckErr(err)
 		xbsBuffer, err := xbstools.Json2XBS(buffer)
 		cobra.CheckErr(err)
-		os.MkdirAll(filepath.Dir(jsonOutPath), os.ModePerm)
+		err = os.MkdirAll(filepath.Dir(xbsOutPath), 0755)
+		cobra.CheckErr(err)
 		err = os.WriteFile(xbsOutPath, xbsBuffer, 0644)
 		cobra.CheckErr(err)
 	},

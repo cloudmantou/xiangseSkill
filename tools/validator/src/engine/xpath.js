@@ -11,8 +11,16 @@ export function createDom(html) {
   return new JSDOM(String(html || "")).window.document;
 }
 
-export function evaluateNodes(document, expression, contextNode) {
+function expressionForContext(document, expression, contextNode) {
   const expr = String(expression || "").trim();
+  if (contextNode && contextNode !== document && expr.startsWith("//")) {
+    return `.${expr}`;
+  }
+  return expr;
+}
+
+export function evaluateNodes(document, expression, contextNode) {
+  const expr = expressionForContext(document, expression, contextNode);
   if (!expr) {
     return [];
   }
@@ -45,7 +53,7 @@ export function evaluateValue(document, expression, contextNode) {
   }
 
   const strResult = document.evaluate(
-    expression,
+    expressionForContext(document, expression, contextNode),
     contextNode || document,
     null,
     document.defaultView.XPathResult.STRING_TYPE,

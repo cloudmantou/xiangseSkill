@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 import check_xiangse_schema as schema_checker
+import decode_xbs as python_xbs_codec
 
 from editor_compat import (
     CORE_ACTIONS,
@@ -110,8 +111,7 @@ def _run_xbsrebuild(action: str, input_path: Path, output_path: Path) -> None:
     repo_root = _repo_root()
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    cmd_prefix, cwd, _ = _resolve_runner(repo_root)
-    cmd = cmd_prefix + [action, "-i", str(input_path), "-o", str(output_path)]
+    cmd_prefix, cwd, runner_source = _resolve_runner(repo_root)
 
     env = os.environ.copy()
     cache_root = repo_root / ".cache"
@@ -125,9 +125,84 @@ def _run_xbsrebuild(action: str, input_path: Path, output_path: Path) -> None:
     env["GOCACHE"] = str(gocache)
     env["GOMODCACHE"] = str(gomodcache)
 
-    completed = subprocess.run(cmd, cwd=str(cwd) if cwd else None, env=env)
-    if completed.returncode != 0:
-        raise RuntimeError(f"xbsrebuild command failed: {' '.join(cmd)}")
+    fd, temp_name = tempfile.mkstemp(
+        prefix=f".{output_path.name}.",
+        suffix=".tmp",
+        dir=output_path.parent,
+    )
+    os.close(fd)
+    temp_output = Path(temp_name)
+    temp_output.unlink()
+
+    cmd = cmd_prefix + [action, "-i", str(input_path), "-o", str(temp_output)]
+    try:
+        completed = subprocess.run(
+            cmd,
+            cwd=str(cwd) if cwd else None,
+            env=env,
+            capture_output=True,
+            text=True,
+        )
+        if completed.returncode != 0:
+            if _should_use_python_xbs_fallback(runner_source, completed):
+                print(
+                    "WARN: vendored Go runner could not start on macOS; "
+                    "using the bundled Python XBS codec.",
+                    file=sys.stderr,
+                )
+                _run_python_xbs_codec(action, input_path, temp_output)
+            else:
+                details = (completed.stderr or completed.stdout or "").strip()
+                if completed.stdout:
+                    sys.stdout.write(completed.stdout)
+                if completed.stderr:
+                    sys.stderr.write(completed.stderr)
+                suffix = f": {details}" if details else ""
+                raise RuntimeError(
+                    f"xbsrebuild command failed with exit code "
+                    f"{completed.returncode}{suffix}"
+                )
+        else:
+            if completed.stdout:
+                sys.stdout.write(completed.stdout)
+            if completed.stderr:
+                sys.stderr.write(completed.stderr)
+
+        _validate_conversion_output(action, temp_output)
+        os.replace(temp_output, output_path)
+    finally:
+        temp_output.unlink(missing_ok=True)
+
+
+def _should_use_python_xbs_fallback(
+    runner_source: str,
+    completed: subprocess.CompletedProcess[str],
+) -> bool:
+    if runner_source != "vendored_root" or platform.system().lower() != "darwin":
+        return False
+    diagnostics = f"{completed.stdout or ''}\n{completed.stderr or ''}"
+    return "missing LC_UUID load command" in diagnostics
+
+
+def _run_python_xbs_codec(action: str, input_path: Path, output_path: Path) -> None:
+    try:
+        source = input_path.read_bytes()
+        if action == "json2xbs":
+            converted = python_xbs_codec.json2xbs_bytes(source)
+        elif action == "xbs2json":
+            converted = python_xbs_codec.xbs2json_bytes(source)
+        else:
+            raise ValueError(f"unsupported XBS conversion action: {action}")
+        output_path.write_bytes(converted)
+    except Exception as exc:
+        raise RuntimeError(f"Python XBS fallback {action} failed: {exc}") from exc
+
+
+def _validate_conversion_output(action: str, output_path: Path) -> None:
+    if not output_path.is_file():
+        raise RuntimeError(f"{action} output was not created: {output_path}")
+    if output_path.stat().st_size == 0:
+        raise RuntimeError(f"{action} output is empty: {output_path}")
 
 
 def _resolve_node_binary() -> str:
@@ -182,6 +257,10 @@ def _evaluate_schema(input_json: Path, *, strict_requestinfo: bool) -> dict[str,
     if not sources:
         errors.append("顶层必须是对象，且至少包含一个 sourceName->sourceConfig 映射。")
     else:
+        if len(sources) != 1:
+            errors.append(
+                f"delivery JSON must contain exactly one source, found {len(sources)}"
+            )
         for name, src in sources:
             schema_checker._check_one_source(
                 name,
@@ -203,6 +282,8 @@ def _evaluate_editor(input_json: Path, *, strict: bool) -> dict[str, Any]:
     try:
         doc = load_json(input_json)
         _, src, mode = pick_source(doc)
+        if mode == "new" and len(schema_checker._iter_sources(doc)) != 1:
+            raise ValueError("delivery JSON must contain exactly one wrapped source")
     except Exception as exc:
         return {
             "status": "FAIL",
@@ -242,6 +323,28 @@ def _evaluate_editor(input_json: Path, *, strict: bool) -> dict[str, Any]:
     }
 
 
+def _wrap_normalized_source(
+    doc: dict[str, Any],
+    alias: str,
+    normalized: dict[str, Any],
+    mode: str,
+) -> tuple[dict[str, Any], str]:
+    if mode == "new":
+        out_obj = dict(doc)
+        out_obj[alias] = normalized
+        return out_obj, alias
+
+    source_name = normalized.get("sourceName")
+    wrapper_alias = source_name.strip() if isinstance(source_name, str) else ""
+    if not wrapper_alias and alias not in {"", "<root>"}:
+        wrapper_alias = alias.strip()
+    if not wrapper_alias:
+        raise ValueError(
+            "normalized bare source requires a non-empty sourceName or explicit alias"
+        )
+    return {wrapper_alias: normalized}, wrapper_alias
+
+
 def _prepare_import_fixed_json(
     *,
     input_path: Path,
@@ -262,12 +365,7 @@ def _prepare_import_fixed_json(
     doc = load_json(decoded_json)
     alias, src, mode = pick_source(doc)
     normalized, changes = normalize_source_for_import_fix(src, default_weight=default_weight)
-
-    if mode == "new":
-        out_obj = dict(doc)
-        out_obj[alias] = normalized
-    else:
-        out_obj = normalized
+    out_obj, output_alias = _wrap_normalized_source(doc, alias, normalized, mode)
 
     fixed_json = temp_dir / f"{input_path.stem}.import_fixed.json"
     save_json(fixed_json, out_obj)
@@ -275,7 +373,7 @@ def _prepare_import_fixed_json(
         "input_type": input_type,
         "decoded_json": str(decoded_json),
         "fixed_json": fixed_json,
-        "source_alias": alias,
+        "source_alias": output_alias,
         "mode": mode,
         "changes": changes,
     }
@@ -395,13 +493,14 @@ def _run_validator_cli(
             fixture_path = (repo_root / fixture_path).resolve()
         cmd.extend(["--fixtures", str(fixture_path)])
 
+    output_json.unlink(missing_ok=True)
     completed = subprocess.run(
         cmd,
         cwd=str(validator_root),
         capture_output=True,
         text=True,
     )
-    if completed.returncode != 0:
+    if completed.returncode not in {0, 1, 2}:
         err_text = completed.stderr.strip() or completed.stdout.strip()
         raise RuntimeError(
             "validator CLI failed. "
@@ -409,15 +508,27 @@ def _run_validator_cli(
         )
 
     if not output_json.exists():
-        raise RuntimeError("validator CLI completed but output report is missing")
+        err_text = completed.stderr.strip() or completed.stdout.strip()
+        raise RuntimeError(
+            "validator CLI completed without a generated output report. "
+            f"exit_code={completed.returncode}; details={err_text or 'no output'}"
+        )
 
-    with output_json.open("r", encoding="utf-8") as f:
-        payload = json.load(f)
+    try:
+        with output_json.open("r", encoding="utf-8") as f:
+            payload = json.load(f)
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"validator output report is invalid: {output_json}: {exc}") from exc
+    if not isinstance(payload, dict):
+        raise RuntimeError(f"validator output report must be a JSON object: {output_json}")
+    if not isinstance(payload.get("report"), dict):
+        raise RuntimeError(f"validator output is missing a report object: {output_json}")
     payload["_runtime"] = {
         "node_bin": node_bin,
         "validator_root": str(validator_root),
         "validator_cli": str(validator_cli),
         "command": cmd,
+        "returncode": completed.returncode,
     }
     return payload
 
@@ -444,7 +555,7 @@ def _build_simulation_result(
     }
     runtime_info: dict[str, Any] = {}
 
-    if validator_payload and validator_payload.get("ok"):
+    if validator_payload and isinstance(validator_payload.get("report"), dict):
         report = validator_payload.get("report", {})
         verdict = report.get("verdict", {}) if isinstance(report, dict) else {}
         steps = report.get("steps", {}) if isinstance(report, dict) else {}
@@ -668,17 +779,52 @@ def _command_xbs2json(args: argparse.Namespace) -> None:
     print(f"OK: {Path(args.output).resolve()}")
 
 
+def _load_roundtrip_json(path: Path, label: str) -> Any:
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"{label} is not valid JSON: {path}: {exc}") from exc
+
+
+def _json_values_equal(left: Any, right: Any) -> bool:
+    if isinstance(left, bool) or isinstance(right, bool):
+        return type(left) is type(right) and left == right
+    if isinstance(left, (int, float)) and isinstance(right, (int, float)):
+        return left == right
+    if type(left) is not type(right):
+        return False
+    if isinstance(left, dict):
+        return left.keys() == right.keys() and all(
+            _json_values_equal(left[key], right[key]) for key in left
+        )
+    if isinstance(left, list):
+        return len(left) == len(right) and all(
+            _json_values_equal(left_item, right_item)
+            for left_item, right_item in zip(left, right)
+        )
+    return left == right
+
+
 def _command_roundtrip(args: argparse.Namespace) -> None:
     input_json = Path(args.input).resolve()
     prefix = Path(args.prefix).resolve()
-    xbs_path = prefix.with_suffix(".xbs")
-    roundtrip_json = prefix.with_suffix(".roundtrip.json")
+    xbs_path = Path(f"{prefix}.xbs")
+    roundtrip_json = Path(f"{prefix}.roundtrip.json")
 
     if not args.skip_schema_check:
         _run_schema_check(input_json, strict_requestinfo=args.strict_requestinfo)
 
     _run_xbsrebuild("json2xbs", input_json, xbs_path)
     _run_xbsrebuild("xbs2json", xbs_path, roundtrip_json)
+
+    original_value = _load_roundtrip_json(input_json, "input")
+    roundtrip_value = _load_roundtrip_json(roundtrip_json, "roundtrip output")
+    if not _json_values_equal(original_value, roundtrip_value):
+        raise RuntimeError(
+            "roundtrip JSON mismatch: decoded output is not semantically equal "
+            f"to input ({input_json} != {roundtrip_json})"
+        )
 
     print("Roundtrip done:")
     print(f"- {xbs_path}")
@@ -802,6 +948,32 @@ def _is_strong_book_source(source: dict[str, object], mode: str) -> bool:
     return has_action and ("bookSourceName" in source) and ("bookSourceUrl" in source)
 
 
+def _stage_json(path: Path, value: Any) -> Path:
+    fd, temp_name = tempfile.mkstemp(
+        prefix=f".{path.name}.",
+        suffix=".json.stage",
+        dir=path.parent,
+    )
+    os.close(fd)
+    staged = Path(temp_name)
+    try:
+        save_json(staged, value)
+    except Exception:
+        staged.unlink(missing_ok=True)
+        raise
+    return staged
+
+
+def _stage_path(path: Path, suffix: str) -> Path:
+    fd, temp_name = tempfile.mkstemp(
+        prefix=f".{path.name}.",
+        suffix=suffix,
+        dir=path.parent,
+    )
+    os.close(fd)
+    return Path(temp_name)
+
+
 def _command_normalize_2561(args: argparse.Namespace) -> None:
     input_path = Path(args.input).resolve()
     report_path = Path(args.report).resolve() if args.report else None
@@ -848,22 +1020,42 @@ def _command_normalize_2561(args: argparse.Namespace) -> None:
             if not backup_path.exists():
                 shutil.copy2(p, backup_path)
 
-            if mode == "new":
-                out_obj = dict(doc)
-                out_obj[alias] = normalized
-            else:
-                out_obj = normalized
-            save_json(p, out_obj)
-            changed_json_count += 1
-
+            out_obj, _ = _wrap_normalized_source(doc, alias, normalized, mode)
             rebuilt = False
             rebuilt_xbs_path = ""
+            staged_json = _stage_json(p, out_obj)
+            staged_xbs: Path | None = None
+            rollback_json: Path | None = None
             if args.rebuild_xbs:
                 xbs_path = p.with_suffix(".xbs")
-                _run_xbsrebuild("json2xbs", p, xbs_path)
-                rebuilt = True
-                rebuilt_xbs_count += 1
-                rebuilt_xbs_path = str(xbs_path)
+                staged_xbs = _stage_path(xbs_path, ".xbs.stage")
+                staged_xbs.unlink(missing_ok=True)
+                rollback_json = _stage_path(p, ".json.rollback")
+                shutil.copy2(p, rollback_json)
+
+            json_committed = False
+            try:
+                if staged_xbs is not None:
+                    _run_xbsrebuild("json2xbs", staged_json, staged_xbs)
+                os.replace(staged_json, p)
+                json_committed = True
+                if staged_xbs is not None:
+                    os.replace(staged_xbs, xbs_path)
+                    rebuilt = True
+                    rebuilt_xbs_count += 1
+                    rebuilt_xbs_path = str(xbs_path)
+            except Exception:
+                if json_committed and rollback_json is not None and rollback_json.exists():
+                    os.replace(rollback_json, p)
+                raise
+            finally:
+                staged_json.unlink(missing_ok=True)
+                if staged_xbs is not None:
+                    staged_xbs.unlink(missing_ok=True)
+                if rollback_json is not None:
+                    rollback_json.unlink(missing_ok=True)
+
+            changed_json_count += 1
 
             details.append(
                 {
@@ -907,6 +1099,9 @@ def _command_normalize_2561(args: argparse.Namespace) -> None:
         for d in details:
             if d.get("status") == "failed":
                 print(f"- {d['path']}: {d['reason']}")
+        raise RuntimeError(
+            f"normalize-2561 failed for {failed_count} file(s); see FAILED_FILES above"
+        )
 
 
 def _command_import_fix(args: argparse.Namespace) -> None:
@@ -939,24 +1134,70 @@ def _command_import_fix(args: argparse.Namespace) -> None:
             src, default_weight=default_weight
         )
 
-        if mode == "new":
-            out_obj = dict(doc)
-            out_obj[alias] = normalized
-        else:
-            out_obj = normalized
-        save_json(output_json, out_obj)
+        out_obj, output_alias = _wrap_normalized_source(doc, alias, normalized, mode)
+        if output_xbs is not None and output_xbs == output_json:
+            raise ValueError("--output and --to-xbs must be different paths")
 
-        _run_schema_check(
-            output_json,
-            strict_requestinfo=args.strict_requestinfo,
-        )
+        output_json.parent.mkdir(parents=True, exist_ok=True)
+        if output_xbs is not None:
+            output_xbs.parent.mkdir(parents=True, exist_ok=True)
 
-        risks = check_editor_risks(normalized, mode=mode)
-        high_risks = [r for r in risks if r.level == "high"]
-        editor_result = "PASS" if not risks else ("FAIL" if high_risks else "WARN")
+        staged_json = _stage_json(output_json, out_obj)
+        staged_xbs: Path | None = None
+        rollback_json: Path | None = None
+        rollback_xbs: Path | None = None
+        json_existed = output_json.exists()
+        xbs_existed = bool(output_xbs and output_xbs.exists())
+        json_committed = False
+        xbs_committed = False
+        try:
+            _run_schema_check(
+                staged_json,
+                strict_requestinfo=args.strict_requestinfo,
+            )
 
-        if output_xbs:
-            _run_xbsrebuild("json2xbs", output_json, output_xbs)
+            risks = check_editor_risks(normalized, mode=mode)
+            high_risks = [r for r in risks if r.level == "high"]
+            editor_result = "PASS" if not risks else ("FAIL" if high_risks else "WARN")
+
+            if output_xbs:
+                staged_xbs = _stage_path(output_xbs, ".xbs.stage")
+                staged_xbs.unlink(missing_ok=True)
+                _run_xbsrebuild("json2xbs", staged_json, staged_xbs)
+
+            if json_existed:
+                rollback_json = _stage_path(output_json, ".json.rollback")
+                shutil.copy2(output_json, rollback_json)
+            if output_xbs and xbs_existed:
+                rollback_xbs = _stage_path(output_xbs, ".xbs.rollback")
+                shutil.copy2(output_xbs, rollback_xbs)
+
+            try:
+                os.replace(staged_json, output_json)
+                json_committed = True
+                if output_xbs and staged_xbs:
+                    os.replace(staged_xbs, output_xbs)
+                    xbs_committed = True
+            except Exception:
+                if json_committed:
+                    if rollback_json and rollback_json.exists():
+                        os.replace(rollback_json, output_json)
+                    elif not json_existed:
+                        output_json.unlink(missing_ok=True)
+                if output_xbs and xbs_committed:
+                    if rollback_xbs and rollback_xbs.exists():
+                        os.replace(rollback_xbs, output_xbs)
+                    elif not xbs_existed:
+                        output_xbs.unlink(missing_ok=True)
+                raise
+        finally:
+            staged_json.unlink(missing_ok=True)
+            if staged_xbs:
+                staged_xbs.unlink(missing_ok=True)
+            if rollback_json:
+                rollback_json.unlink(missing_ok=True)
+            if rollback_xbs:
+                rollback_xbs.unlink(missing_ok=True)
 
         summary = {
             "input": str(input_path),
@@ -965,7 +1206,7 @@ def _command_import_fix(args: argparse.Namespace) -> None:
             "output_json": str(output_json),
             "output_xbs": str(output_xbs) if output_xbs else "",
             "default_weight": default_weight,
-            "source_alias": alias,
+            "source_alias": output_alias,
             "mode": mode,
             "changed": bool(changes),
             "changes": changes,
